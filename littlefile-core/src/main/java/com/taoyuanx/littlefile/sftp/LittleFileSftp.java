@@ -3,7 +3,6 @@ package com.taoyuanx.littlefile.sftp;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -22,6 +21,7 @@ public class LittleFileSftp {
 	private String host, username, password, workDir,privateKey,privateKeyPassword;
 	private int port;
 	private boolean usePassword=true,isWorkDirNotEmpty=false;
+	ThreadLocal<ChannelSftp> clientLocal = new ThreadLocal<ChannelSftp>();
 	private JSch jsch;
 	/**
 	 * 私钥认证
@@ -53,26 +53,22 @@ public class LittleFileSftp {
 		ChannelSftp channel = getSftpChannel();
 		String file = mkdirs(dest, channel);
 		channel.put(input, file);
-		closeChannel(channel);
 	}
 
 	public void upload(String src, String dest) throws Exception {
 		ChannelSftp channel = getSftpChannel();
 		String file = mkdirs(dest, channel);
 		channel.put(src, file);
-		closeChannel(channel);
 	}
 
 	public void download(String src, String dest) throws Exception {
 		ChannelSftp channel = getSftpChannel();
 		channel.get(src, dest);
-		closeChannel(channel);
 	}
 
 	public void download(String src, OutputStream out) throws Exception {
 		ChannelSftp channel = getSftpChannel();
 		channel.get(src, out);
-		closeChannel(channel);
 	}
 	public List<String> list(String dir) throws Exception{
 		ChannelSftp channel = getSftpChannel();
@@ -85,7 +81,6 @@ public class LittleFileSftp {
 				child.add(next.getFilename());
 			}
 		}
-		closeChannel(channel);
 		return child;
 	}
 	
@@ -121,12 +116,14 @@ public class LittleFileSftp {
 	 * @param channel
 	 * @throws Exception
 	 */
-	public void closeChannel(Channel channel) throws Exception {
+	public void closeChannel() throws Exception {
+		ChannelSftp channel = clientLocal.get();
+		
 		if (channel != null) {
 			channel.disconnect();
-		}
-		if (channel.getSession() != null) {
-			channel.getSession().disconnect();
+			if (channel.getSession() != null) {
+				channel.getSession().disconnect();
+			}
 		}
 	}
 	
@@ -136,28 +133,37 @@ public class LittleFileSftp {
 	 * @return sftp通道
 	 * @throws Exception
 	 */
-	public ChannelSftp getSftpChannel() throws Exception {
-		Session session = jsch.getSession(username, host, port);
-		if(usePassword) {
-			session.setPassword(password);
+	private ChannelSftp getSftpChannel() throws Exception {
+		ChannelSftp local = clientLocal.get();
+		if(local==null) {
+			Session session = jsch.getSession(username, host, port);
+			if(usePassword) {
+				session.setPassword(password);
+			}else {
+				jsch.addIdentity(privateKey, privateKeyPassword);
+			}
+			Properties config = new Properties();
+			config.put("StrictHostKeyChecking", "no");
+			session.setTimeout(3000);
+			session.setConfig(config);
+			session.connect();
+			ChannelSftp channel = (ChannelSftp)session.openChannel("sftp");
+			channel.connect();
+			if(isWorkDirNotEmpty) {
+				channel.cd(workDir);
+			}
+			clientLocal.set(channel);
+			return  channel;
 		}else {
-			jsch.addIdentity(privateKey, privateKeyPassword);
+			return local;
 		}
-		Properties config = new Properties();
-		config.put("StrictHostKeyChecking", "no");
-		session.setTimeout(3000);
-		session.setConfig(config);
-		session.connect();
-		ChannelSftp channel = (ChannelSftp)session.openChannel("sftp");
-		channel.connect();
-		if(isWorkDirNotEmpty) {
-			channel.cd(workDir);
-		}
-		return  channel;
+		
 	}
 	public static void main(String[] args) throws Exception {
 		LittleFileSftp sftp=new LittleFileSftp("192.168.91.201", 22, "root", "123", "/opt/sftp/",null,null);
 		sftp.download("1.png", "L://123.png");
+		sftp.upload("L://123.png", "123/123.png");
+		sftp.closeChannel();
 	}
 
 }
