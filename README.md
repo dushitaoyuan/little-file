@@ -108,7 +108,7 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 
 #### 仓库地址
 
-**git地址:**[https://github.com/dushitaoyuan/little-rpc](https://github.com/dushitaoyuan/little-rpc)
+**git地址:**[https://github.com/dushitaoyuan/little-file](https://github.com/dushitaoyuan/little-file)
 
 
 
