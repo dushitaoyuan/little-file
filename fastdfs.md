@@ -587,9 +587,9 @@ tracker server 迁移base path<br/>
 Tracker<br/>
 
 ![avatar](https://github.com/dushitaoyuan/little-file/blob/master/t1.png)
-Storage
+Storage<br/>
 
-<br/>
+
 ![avatar](https://github.com/dushitaoyuan/little-file/blob/master/t2.png)
 
 步骤:
