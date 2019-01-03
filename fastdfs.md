@@ -24,6 +24,8 @@ Fastdfs 只提供文件的基本操作，没有对文件重复上传做处理，
 安装教程:[安装地址](https://github.com/happyfish100/fastdfs/wiki) <br/>
 客户端地址:[客户端地址](https://github.com/happyfish100/fastdfs-client-java) <br/>
 服务端源码地址:[服务端](客户端地址:[客户端地址](https://github.com/happyfish100/fastdfs-client-java) <br/>
+
+
 #####使用
 ```
 fdfs命令详解：
@@ -63,6 +65,8 @@ chkconfig fdfs_storaged /xxx/fdfs/storage.conf  on
 
 
 ####tracker.conf 配置详解
+
+
 ```
 #是否启用本配置问价true|false
 disabled=false
@@ -209,7 +213,11 @@ http.check_alive_type=tcp
 http.check_alive_uri=/status.html
 
 ```
+
+
 ####tracker.conf 配置详解
+
+
 ```
 #是否启用这个配置
 disabled=false
@@ -461,7 +469,13 @@ http.domain_name=
 http.server_port=8888
 
 ```
+
+
+
 ####client.conf配置
+
+
+
 
 ```
 
@@ -509,6 +523,9 @@ http.tracker_server_port=80
 
 
 ####建议配置
+
+
+
 ```
 建议配置
 tracker.conf
@@ -565,7 +582,11 @@ storage_ids.conf
 
 
 ```
+
+
 ###使用特性
+
+
 备份：<br/>
 根据fastdfs的设计原理，同group中storage server 会进行互备，所以开启备份保证每个group中包含一台或多台即可，另外不同group的备份时间尽量错开<br/>
 也可使用 raid技术备份<br/>
@@ -587,8 +608,8 @@ tracker server 迁移base path<br/>
 Tracker<br/>
 
 ![avatar](https://github.com/dushitaoyuan/little-file/blob/master/t1.png)
-Storage<br/>
 
+Storage<br/>
 
 ![avatar](https://github.com/dushitaoyuan/little-file/blob/master/t2.png)
 
@@ -597,8 +618,29 @@ Storage<br/>
 2.修改tracker 配置（或数据信息） 重启 tracker，迁移后的storage 加入tracker<br/>
 
 
+###使用场景介绍
+```
+备注：使用nginx时需保证每台storage server 都部署nginx，适合单机或小集群系统
+文件备份机制可不开（即每个group中只有一台 storage server），建议开启 storage_id ，不使用ip作为storage server 标识，迁移方便
+单纯作为文件服务器
+使用方式： fastdfs+nginx+fastdfs_nginx_module+ fatsdfs_java_client
+单机图片服务器：
+使用方式：fastdfs+nginx+fastdfs_nginx_module+ fatsdfs_java_client
+大集群文件系统
+使用方式：
+fatsdfs_java_client +fastdfs 
+可单独配置 独立的http服务接口（包含基本操作：上传，下载，访问，）和客户端，业务系统调用即可
 
 
-###http访问
-单机http访问
-小集群可使用 little-file支持http
+
+
+集群部署时，不建议使用nginx（需要在每台sorage server上安装 nginx 服务），可单独编写下载，访问程序，嵌入业务系统也可单独部署一台或多台http服务端统一接管整个集群中所有的storage server服务，流程如下
+嵌入方式：
+以文件下载需求举例：
+1.浏览器等文件客户端请求业务系统统一文件下载接口
+2.如果该文件在磁盘上不存在，业务系统调用fastdfs api 下载文件到业务系统机器磁盘，然后返回文件流
+3.客户端根据文件流信息渲染文件
+4.业务根据需要定时清空本地缓存文件
+独立http服务端：
+客户端直接和http服务交互，业务系统文件操作通过 fatsdfs api操作
+```
