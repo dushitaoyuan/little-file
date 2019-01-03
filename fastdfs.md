@@ -26,7 +26,7 @@ Fastdfs 只提供文件的基本操作，没有对文件重复上传做处理，
 服务端源码地址:[服务端](客户端地址:[客户端地址](https://github.com/happyfish100/fastdfs-client-java) <br/>
 
 
-#####使用
+##### 使用
 ```
 fdfs命令详解：
 启动：
@@ -61,10 +61,10 @@ chkconfig fdfs_storaged /xxx/fdfs/storage.conf  on
 ```
 
 
-###fastdfs配置详解
+### fastdfs配置详解
 
 
-####tracker.conf 配置详解
+#### tracker.conf 配置详解
 
 
 ```
@@ -215,7 +215,7 @@ http.check_alive_uri=/status.html
 ```
 
 
-####tracker.conf 配置详解
+#### tracker.conf 配置详解
 
 
 ```
@@ -472,7 +472,7 @@ http.server_port=8888
 
 
 
-####client.conf配置
+#### client.conf配置
 
 
 
@@ -522,7 +522,7 @@ http.tracker_server_port=80
 ```
 
 
-####建议配置
+#### 建议配置
 
 
 
@@ -584,7 +584,7 @@ storage_ids.conf
 ```
 
 
-###使用特性
+### 使用特性
 
 
 备份：<br/>
@@ -618,7 +618,7 @@ Storage<br/>
 2.修改tracker 配置（或数据信息） 重启 tracker，迁移后的storage 加入tracker<br/>
 
 
-###使用场景介绍
+### 使用场景介绍
 ```
 备注：使用nginx时需保证每台storage server 都部署nginx，适合单机或小集群系统
 文件备份机制可不开（即每个group中只有一台 storage server），建议开启 storage_id ，不使用ip作为storage server 标识，迁移方便
