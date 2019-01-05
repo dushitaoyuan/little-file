@@ -1,7 +1,7 @@
 #fastdfs全面详解
 
 #### fastdfs架构简介
-首先简单了解一下基础概念，FastDFS是一个开源的轻量级分布式文件系统，由跟踪服务器（tracker server）、存储服务器（storage server）和客户端（client）三个部分组成，主要解决了海量数据存储问题，特别适合以中小文件（建议范围：4KB < file_size <500MB）为载体的在线服务，如果需要对外提供http服务需要在storage server上安装nginx+fastdfs_module服务。FastDFS的系统结构图如下：
+首先简单了解一下基础概念，FastDFS是一个开源的轻量级分布式文件系统，由跟踪服务器（tracker server）、存储服务器（storage server）和客户端（client）三个部分组成，主要解决了海量数据存储问题，特别适合以中小文件（建议范围：4KB < file_size <500MB）为载体的在线服务，如果需要对外提供http服务需要在storage server上安装nginx+fastdfs_module服务。FastDFS的系统结构图如下：<br/>
 ![avatar](https://github.com/dushitaoyuan/little-file/blob/master/fastdfs/img/jieshao.png)
 <br/>
 如上图,FastDFS的两个核心概念分别是：<br/>
@@ -22,7 +22,7 @@ Fastdfs 只提供文件的基本操作，没有对文件重复上传做处理，
 #### 安装和使用
 安装教程:[安装地址](https://github.com/happyfish100/fastdfs/wiki) <br/>
 客户端地址:[客户端地址](https://github.com/happyfish100/fastdfs-client-java) <br/>
-服务端源码地址:[服务端](客户端地址:[客户端地址](https://github.com/happyfish100/fastdfs-client-java) <br/>
+服务端源码地址:[服务端](https://github.com/happyfish100/fastdfs) <br/>
 
 
 ##### 使用
