@@ -214,7 +214,7 @@ http.check_alive_uri=/status.html
 ```
 
 
-#### tracker.conf 配置详解
+#### storage.conf 配置详解
 
 
 ```
