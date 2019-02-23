@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>liitlefile-web</display-name>
+
+    <!--   配置servlet,处理文件请求 需要参数:
+    f 文件路径
+    t 0 下载  1查看
+    s token 可选 对f的hmac
+             具体实现 参见com.taoyuanx.littlefile.web.FileHandler
+   	 如: 下载链接:http://localhost:8080/littlefile-web/down?f=group1/M00/00/01/oYYBAFwjqB6AEatWAABkNxa-me0434.png&t=0&s=DRfo7B8fxDxrnQBR9IfPrA
+   		 查看链接:http://localhost:8080/littlefile-web/down?f=group1/M00/00/01/oYYBAFwjqB6AEatWAABkNxa-me0434.png&t=1&s=DRfo7B8fxDxrnQBR9IfPrA
+    -->
+  <servlet>
+  <servlet-name>downLoadServlet</servlet-name>
+  <servlet-class>com.taoyuanx.littlefile.web.DownLoadServlet</servlet-class>
+   <init-param>
+      <param-name>liitle_conf</param-name>
+      <param-value>classpath:littlefile.properties</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+  <servlet-name>downLoadServlet</servlet-name>
+  <url-pattern>/down</url-pattern>
+  </servlet-mapping>
+</web-app>
