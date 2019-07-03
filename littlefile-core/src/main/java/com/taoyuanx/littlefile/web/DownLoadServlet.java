@@ -41,10 +41,18 @@ public class DownLoadServlet extends HttpServlet {
 		}
 		String absloulteCacheFileDIR = cacheDirFile.getAbsolutePath();
 		boolean gzip = littleFileConfig.getConfig(LittleFilConfig.LITTLEFILE_FILE_GZIP);
-		fileHandler = new FileHandler(absloulteCacheFileDIR,
-				littleFileConfig.getFileDownStrategy(absloulteCacheFileDIR), gzip,
-				littleFileConfig.getTokenManager());
-		fileClean = littleFileConfig.getFileClean(absloulteCacheFileDIR);
+        String url_format=littleFileConfig.getConfig(LittleFilConfig.LITTLEFILE_FILEHANDLE_URL_FORMAT);
+		if (littleFileConfig.getTokenManager()!=null){
+            Long tokenExpireMin=littleFileConfig.getConfig(LittleFilConfig.LITTLEFILE_TOKEN_EXPIRE_MIN);
+            fileHandler = new FileHandler(absloulteCacheFileDIR,
+                    littleFileConfig.getFileDownStrategy(absloulteCacheFileDIR), gzip,
+                    littleFileConfig.getTokenManager()
+                    ,tokenExpireMin,url_format);
+
+        }else{
+            fileHandler = new FileHandler(absloulteCacheFileDIR,littleFileConfig.getFileDownStrategy(absloulteCacheFileDIR), gzip,url_format);
+        }
+        fileClean = littleFileConfig.getFileClean(absloulteCacheFileDIR);
 		if (fileClean != null) {
 			fileClean.start();
 		}

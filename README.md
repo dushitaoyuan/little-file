@@ -1,4 +1,4 @@
-# little-config
+# little-file
 
 #### 项目介绍
 小型文件管理http服务,为原有的文件系统提供可靠的http服务目前支持:fatdfs,ftp,sftp,local(本地文件)图片在线预览,支持gzip压缩简单封装了,fastdfs,sftp,ftp基本操作(上传,下载)
@@ -65,7 +65,7 @@ littlefile.ftp.trust_manager_password=
 #本地模式 英文,分割,支持多个本地文件目录
 littlefile.local.dirs=L:/tmp2,L:/tmp3
 ```
-###传统项目使用:在web.xml中配置默认的servlet
+### 传统项目使用:在web.xml中配置默认的servlet
 ```
     <!--   配置servlet,处理文件请求 需要参数:
     f 文件路径
@@ -93,18 +93,24 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 ```
 
 
-###其他环境
+### 其他环境
 ```
 实例化 com.taoyuanx.littlefile.web.FileHandler 类,或扩展该类暴露http服务
 
 ```
 
-###安全控制
+### 安全控制
 项目中实现了简单的安全控制,其他外部系统可引入littlefile-core包构造访问路径即可
 安全控制实现参见:com.taoyuanx.littlefile.web.security.HmacTokenManager,用户亦可自行实现
 
-###使用
+### 使用
 部分参数解释如上,也可参见示例项目:littlefile-web
+1.上传文件<br/>
+参见 LittleFile系列实现
+2.创建授权url(com.taoyuanx.littlefile.web.FileHandler.signFileUrl),
+未开启安全控制时,创建公开url(com.taoyuanx.littlefile.web.FileHandler.createPublicUrl)
+参见 FileAuthedUrlCreate<br/>
+3.访问
 
 #### 仓库地址
 
