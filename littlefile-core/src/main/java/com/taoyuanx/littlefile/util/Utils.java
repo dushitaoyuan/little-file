@@ -71,12 +71,5 @@ public class Utils {
 			return new FileInputStream(filePath);
 		}
 	}
-	public static void main(String[] args) throws Exception {
-		String path="e://ftp/client.p12";
-				//"classpath:client.p12";
-		String password="123456";
-		System.out.println(getKeyManager(path, password));
-		System.out.println(getTrustManager(path, password));
-		
-	}
+
 }

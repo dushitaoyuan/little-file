@@ -1,14 +1,5 @@
 package com.taoyuanx.littlefile.config;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.taoyuanx.littlefile.clean.FileClean;
 import com.taoyuanx.littlefile.clean.FileCleanTask.BadFileAndPeriodDelte;
 import com.taoyuanx.littlefile.clean.FileCleanTask.CheckDelete;
@@ -25,6 +16,14 @@ import com.taoyuanx.littlefile.util.Utils;
 import com.taoyuanx.littlefile.web.security.AbstractSimpleTokenManager;
 import com.taoyuanx.littlefile.web.security.HmacTokenManager;
 import com.taoyuanx.littlefile.web.security.MacEum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -32,8 +31,8 @@ import com.taoyuanx.littlefile.web.security.MacEum;
  * 2018年12月28日
  * 全局配置类
  */
-public class LittleFilConfig {
-    public static final Logger LOG = LoggerFactory.getLogger(LittleFilConfig.class);
+public class LittleFileConfig {
+    public static final Logger LOG = LoggerFactory.getLogger(LittleFileConfig.class);
 
     public static class FdfsConfig {
         public static final String LITTLEFILE_FDFS_FDFS_CONF = "littlefile.fdfs.fdfs_conf";
@@ -85,7 +84,7 @@ public class LittleFilConfig {
 
     private static final Map<String, Object> CONFIGHOLDER = new HashMap<>();
 
-    public LittleFilConfig(String littleConfig) {
+    public LittleFileConfig(String littleConfig) {
         try {
             String property = null;
             Properties pro = new Properties();
@@ -193,6 +192,7 @@ public class LittleFilConfig {
         return (T) CONFIGHOLDER.get(configKey);
     }
 
+
     static FileClean fileClean = null;
 
     public FileClean getFileClean(String cacheDir) {
@@ -268,13 +268,5 @@ public class LittleFilConfig {
         return tokenManager;
     }
 
-    public static void main(String[] args) {
-        LittleFilConfig config = new LittleFilConfig("classpath:littlefile.properties");
-        FileServerEum serverEum = config.getConfig(LITTLEFILE_SERVER_TYPE);
-        System.out.println(serverEum);
-        System.out.println(config.getConfig(LITTLEFILE_FILE_CACHE_TIME));
-        MacEum m = config.getConfig(LITTLEFILE_TOKEN_HMAC);
-        System.out.println(m);
-    }
 
 }

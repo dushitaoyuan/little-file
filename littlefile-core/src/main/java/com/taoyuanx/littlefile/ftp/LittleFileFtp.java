@@ -156,13 +156,5 @@ public class LittleFileFtp {
 		}
 	}
 
-	public static void main(String[] args) throws Exception {
-		LittleFileFtp ftp =new LittleFileFtp("127.0.0.1", 21, "ftp", "ftp", "/",null,null,null,null);
-				//new LittleFileFtp("127.0.0.1", 2221, "admin", "admin", "","classpath:ftpserver.jks", "password", "classpath:ftpserver.jks", "password");
-				//new LittleFileFtp("127.0.0.1", 2121, "admin", "admin", "");
-				//new LittleFileFtp("127.0.0.1", 21, "ftp", "ftp", "/opt/ftp/");
-		ftp.upload("L://1.png", "/mk6/1.png");
-		ftp.download("/mk6/1.png", "L://123.png");
-		ftp.close();
-	}
+
 }

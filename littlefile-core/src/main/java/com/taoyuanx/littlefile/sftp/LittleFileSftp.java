@@ -159,11 +159,6 @@ public class LittleFileSftp {
 		}
 		
 	}
-	public static void main(String[] args) throws Exception {
-		LittleFileSftp sftp=new LittleFileSftp("192.168.91.201", 22, "root", "123", "/opt/sftp/",null,null);
-		sftp.download("1.png", "L://123.png");
-		sftp.upload("L://123.png", "123/123.png");
-		sftp.closeChannel();
-	}
+
 
 }

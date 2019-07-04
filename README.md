@@ -71,14 +71,21 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 ```
 ### 传统项目使用:在web.xml中配置默认的servlet
 ```
-    <!--   配置servlet,处理文件请求 需要参数:
+      <!--   配置servlet,处理文件请求 需要参数:
+  
+  安全控制开启时:
+    s token token中包含 文件url和处理类型
+    文件访问链接生成参见 @see com.taoyuanx.littlefile.web.FileHandler.signFileUrl
+      具体实现 参见com.taoyuanx.littlefile.web.FileHandler
+     	 如: 下载链接:http://localhost:8080/littlefile-web/down?s=$token
+     		 查看链接:http://localhost:8080/littlefile-web/down?s=$token
+  
+    未开启时:
+    t 文件类型 0下载 1查看
     f 文件路径
-    t 0 下载  1查看
-    s token 可选 对f的hmac
-             具体实现 参见com.taoyuanx.littlefile.web.FileHandler
-   	 如: 下载链接:http://localhost:8080/littlefile-web/down?f=group1/M00/00/01/oYYBAFwjqB6AEatWAABkNxa-me0434.png&t=0&s=DRfo7B8fxDxrnQBR9IfPrA
-   		 查看链接:http://localhost:8080/littlefile-web/down?f=group1/M00/00/01/oYYBAFwjqB6AEatWAABkNxa-me0434.png&t=1&s=DRfo7B8fxDxrnQBR9IfPrA
-    -->
+    如: 下载链接:http://localhost:8080/littlefile-web/down?t=0&f=path
+     		 查看链接:http://localhost:8080/littlefile-web/down?t=1&f=path
+      -->
   <servlet>
   <servlet-name>downLoadServlet</servlet-name>
   <servlet-class>com.taoyuanx.littlefile.web.DownLoadServlet</servlet-class>

@@ -1,0 +1,14 @@
+server:
+  port: 8082
+  tomcat:
+    uri-encoding: UTF-8
+    max-connections: 2000
+    max-threads: 500
+spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB

@@ -15,6 +15,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.taoyuanx.littlefile.config.LittleFileConfig;
 import com.taoyuanx.littlefile.web.security.TokenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +107,6 @@ public class FileHandler {
                 case LOOK: {// 查看
                     resp.setContentType(req.getServletContext().getMimeType(absoluteFile.getName()));
                 }
-                ;
                 break;
                 case DOWN: {// 下载
                     resp.setContentType(req.getServletContext().getMimeType(absoluteFile.getName()));
@@ -116,7 +116,6 @@ public class FileHandler {
                     resp.setContentType(req.getServletContext().getMimeType(absoluteFile.getName()));
 
                 }
-                ;
                 break;
             }
             //gzip 压缩
@@ -198,4 +197,8 @@ public class FileHandler {
         }
     }
 
+
+    public String getCacheDir() {
+        return cacheDir;
+    }
 }

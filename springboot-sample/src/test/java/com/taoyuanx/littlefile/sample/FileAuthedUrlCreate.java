@@ -1,3 +1,5 @@
+package com.taoyuanx.littlefile.sample;
+
 import com.taoyuanx.littlefile.config.LittleFileConfig;
 import com.taoyuanx.littlefile.web.FileHandler;
 import org.junit.Test;
