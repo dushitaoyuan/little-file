@@ -1,3 +1,4 @@
+package  com.taoyuanx.littlefile;
 import com.taoyuanx.littlefile.config.LittleFileConfig;
 import com.taoyuanx.littlefile.web.FileHandler;
 import org.junit.Test;
@@ -12,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 public class FileAuthedUrlCreate {
     public FileHandler getSFileHandler() {
         LittleFileConfig littleFileConfig = new LittleFileConfig("classpath:littlefile.properties");
-
         boolean gzip = littleFileConfig.getConfig(LittleFileConfig.LITTLEFILE_FILE_GZIP);
         String url_format = littleFileConfig.getConfig(LittleFileConfig.LITTLEFILE_FILEHANDLE_URL_FORMAT);
         Long tokenExpireMin = littleFileConfig.getConfig(LittleFileConfig.LITTLEFILE_TOKEN_EXPIRE_MIN);
@@ -35,8 +35,8 @@ public class FileAuthedUrlCreate {
 
     @Test
     public void createAuthedFileUrl() {
-        String fileUrl = "t1.png";
-        String handleType = "1";
+        String fileUrl = "file.zip";
+        String handleType = "2";
         System.out.println(getSFileHandler().signFileUrl(fileUrl, handleType));
     }
 

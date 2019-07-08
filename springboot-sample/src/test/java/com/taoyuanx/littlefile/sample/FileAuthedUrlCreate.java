@@ -37,8 +37,8 @@ public class FileAuthedUrlCreate {
 
     @Test
     public void createAuthedFileUrl() {
-        String fileUrl = "t1.png";
-        String handleType = "1";
+        String fileUrl = "temp.zip";
+        String handleType = "2";
         System.out.println(getSFileHandler().signFileUrl(fileUrl, handleType));
     }
 

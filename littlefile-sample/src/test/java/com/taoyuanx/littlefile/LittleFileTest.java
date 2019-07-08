@@ -1,3 +1,5 @@
+package com.taoyuanx.littlefile;
+
 import com.taoyuanx.littlefile.config.LittleFileConfig;
 import com.taoyuanx.littlefile.ftp.LittleFileFtp;
 import com.taoyuanx.littlefile.sftp.LittleFileSftp;

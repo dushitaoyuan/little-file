@@ -1,11 +1,9 @@
 package com.taoyuanx.littlefile.web;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +13,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sun.deploy.util.StringUtils;
 import com.taoyuanx.littlefile.config.LittleFileConfig;
 import com.taoyuanx.littlefile.web.security.TokenException;
 import org.slf4j.Logger;
@@ -41,7 +40,10 @@ public class FileHandler {
      * tokenExpire token过期时间
      * urlFmt 授权url模板 如:http://localhost:8080/down?token=%s
      */
-    public static final String DOWN = "0", LOOK = "1";
+    //文件处理类型: 0下载,1查看 2断点续传
+    public static final String DOWN = "0",
+            LOOK = "1",
+            BYTE_RANGE_DOWN="2";
     public static Logger LOG = LoggerFactory.getLogger(FileHandler.class);
     private String cacheDir;
     private FileDownStrategy fileDownStrategy;
@@ -50,6 +52,7 @@ public class FileHandler {
     private Long tokenExpire;
     private String urlFmt;
     private  boolean tokenOpen=true;
+    private  Integer buffSize=1024*1024*4;
     public FileHandler(String cacheDir, FileDownStrategy fileDownStrategy,
                        boolean isGzip, AbstractSimpleTokenManager tokenManager, Long tokenExpire, String urlFmt) {
         super();
@@ -108,15 +111,17 @@ public class FileHandler {
                     resp.setContentType(req.getServletContext().getMimeType(absoluteFile.getName()));
                 }
                 break;
-                case DOWN: {// 下载
+                case DOWN:{// 下载
                     resp.setContentType(req.getServletContext().getMimeType(absoluteFile.getName()));
                     resp.setHeader("Content-type", "application/octet-stream");
                     resp.setHeader("Content-Disposition",
                             "attachment;fileName=" + URLEncoder.encode(FdfsUtil.getFileName(filePath), "UTF-8"));
                     resp.setContentType(req.getServletContext().getMimeType(absoluteFile.getName()));
 
-                }
-                break;
+                }break;
+                case BYTE_RANGE_DOWN:{
+                    handleByteRange(req,resp,absoluteFile,isGzip);
+                }return;
             }
             //gzip 压缩
             if (isGzip) {
@@ -176,13 +181,16 @@ public class FileHandler {
 
 
     private void handle(OutputStream out, File localFile) throws Exception {
-        InputStream input = new FileInputStream(localFile);
-        byte[] buf = new byte[1024 * 1024];
+        FileChannel channel = new FileInputStream(localFile).getChannel();
+        ByteBuffer buffer=ByteBuffer.allocate(buffSize);
         int len = 0;
-        while ((len = input.read(buf)) != -1) {
-            out.write(buf, 0, len);
+        while ((len = channel.read(buffer)) >0) {
+            buffer.flip();
+            out.write(buffer.array(),0,len);
+            buffer.clear();
         }
-        input.close();
+        channel.close();
+
     }
 
     private void handleError(HttpServletResponse resp, HttpServletRequest req, Exception e, String filePath) {
@@ -200,5 +208,53 @@ public class FileHandler {
 
     public String getCacheDir() {
         return cacheDir;
+    }
+
+
+    private  void handleByteRange(HttpServletRequest req,HttpServletResponse resp,File localFile,boolean isGzip) throws Exception {
+        String name = localFile.getName();
+        resp.setContentType(req.getServletContext().getMimeType(name));
+        resp.setHeader("Content-type", "application/octet-stream");
+        resp.setHeader("Content-Disposition",
+                "attachment;fileName=" + URLEncoder.encode(FdfsUtil.getFileName(name), "UTF-8"));
+        resp.setHeader("Accept-Ranges", "bytes");
+        long fileSize = localFile.length();
+        resp.setHeader("Content-Length", String.valueOf(fileSize));
+        String range = req.getHeader("Range");
+        Long start=0L,endSize=null;
+        RandomAccessFile randomAccessFile=new RandomAccessFile(localFile,"r");
+        /**
+         * Range header 格式:bytes=21384952-
+         */
+        String[] ranges=null;
+        int byteCount=0;
+        if(Utils.isNotEmpty(range)) {//断点续传请求
+            ranges= range.replaceFirst("bytes=", "").split("-");
+            start = Long.parseLong(ranges[0]);
+            if(start>fileSize){
+                return;
+            }
+            if(ranges.length==2){
+                endSize = Long.parseLong(ranges[1]);
+            }
+        }
+        if(endSize==null||endSize>fileSize){
+            endSize=fileSize-1;
+        }
+        long count=endSize-start+1;
+        //格式:Content-Range: bytes 21384952-56671375/56671376
+        String value="bytes "+ start+"-"+endSize+"/"+fileSize;
+        resp.addHeader(" Content-Range",value);
+
+        FileChannel channel = randomAccessFile.getChannel();
+        OutputStream outputStream = resp.getOutputStream();
+        if(isGzip){
+            resp.setHeader("Content-Encoding", "gzip");
+            outputStream = new GZIPOutputStream(resp.getOutputStream());
+        }
+        channel.transferTo(start,count,Channels.newChannel(outputStream));
+        channel.close();
+        resp.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+        outputStream.close();
     }
 }
