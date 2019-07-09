@@ -3,6 +3,7 @@ package com.taoyuanx.littlefile.sample;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okio.RealBufferedSink;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +11,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.channels.Channels;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,16 +23,20 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class FileByteRangeDownLoad {
     OkHttpClient client = null;
-
+    FileAuthedUrlCreate fileAuthedUrlCreate=null;
     @Before
     public void before() {
+         fileAuthedUrlCreate=new FileAuthedUrlCreate();
+
         client = new OkHttpClient().newBuilder().connectTimeout(50, TimeUnit.SECONDS).readTimeout(200, TimeUnit.SECONDS).build();
     }
 
     @Test
     public void byteRangeDownLoadTest() throws Exception {
-        String url = "http://localhost:8082/file?s=eyJ0IjoiMiIsImYiOiJpZGVhSVUtMjAxOS4xLjMud2luLnppcCIsImVuZCI6MTU2MjYwMDI2NjE0MH0.6B2fy_p5078TRp6Mxm-xgw";
-        new ThreadDownFile(url, client, "d://temp.zip").threadDownLoad();
+        String fileUrl = "test.exe";
+        String handleType = "2";
+        String signUrl = fileAuthedUrlCreate.getSFileHandler().signFileUrl(fileUrl, handleType);
+        new ThreadDownFile(signUrl, client, "d:/"+fileUrl).threadDownLoad();
     }
 
 
@@ -69,7 +75,7 @@ public class FileByteRangeDownLoad {
                                     endIndex = totalSize - 1;
                                 }
                                 Response response = downLoad(startIndex, endIndex, destFile);
-                                return new RangeResponse(startIndex, response);
+                                return new RangeResponse(startIndex, response,(endIndex-startIndex)+1);
 
                             }
                         });
@@ -78,7 +84,7 @@ public class FileByteRangeDownLoad {
                     for (Future<RangeResponse> t : list) {
                         RangeResponse rangeResponse = t.get();
                         System.out.println("起始位置:" + rangeResponse.getStart());
-                        write(rangeResponse.getResponse().body().byteStream(), destFile, rangeResponse.getStart());
+                        write(rangeResponse.getResponse().body().byteStream(), destFile, rangeResponse.getStart(),rangeResponse.getCount());
                         rangeResponse.getResponse().close();
                     }
 
@@ -108,16 +114,19 @@ public class FileByteRangeDownLoad {
                         .url(url)
                         .build();
                 execute = okHttpClient.newCall(request).execute();
-                return execute;
+                if(execute.isSuccessful()){
+                    return execute;
+                }
+                throw new RuntimeException("下载异常, response-->"+execute.body().string());
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new  RuntimeException(e);
             }
-            return null;
         }
 
         private AtomicLong countFileSize = new AtomicLong(0);
 
-        private void write(InputStream inputStream, File file, Long start) throws Exception {
+        private void write(InputStream inputStream, File file, Long start,Long count) throws Exception {
+
             RandomAccessFile tmpAccessFile = new RandomAccessFile(file, "rw");// 获取前面已创建的文件.
             tmpAccessFile.seek(start);// 文件写入的开始位置.
             byte[] buf = new byte[4 * 1024 * 1024];
@@ -126,6 +135,7 @@ public class FileByteRangeDownLoad {
                 tmpAccessFile.write(buf, 0, rLen);
                 countFileSize.addAndGet(rLen);
             }
+            countFileSize.addAndGet(count);
             inputStream.close();
             tmpAccessFile.close();
 

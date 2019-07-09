@@ -81,7 +81,7 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
      		 查看链接:http://localhost:8080/littlefile-web/down?s=$token
   
     未开启时:
-    t 文件类型 0下载 1查看
+    t 文件类型 0下载 1查看 2 断点下载
     f 文件路径
     如: 下载链接:http://localhost:8080/littlefile-web/down?t=0&f=path
      		 查看链接:http://localhost:8080/littlefile-web/down?t=1&f=path

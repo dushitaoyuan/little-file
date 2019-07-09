@@ -15,4 +15,5 @@ public class RangeResponse {
 
     private Long start;
     private Response response;
+    private Long count;
 }

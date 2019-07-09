@@ -37,7 +37,7 @@ public class FileAuthedUrlCreate {
 
     @Test
     public void createAuthedFileUrl() {
-        String fileUrl = "ideaIU-2019.1.3.win.zip";
+        String fileUrl = "temp.zip";
         String handleType = "2";
         System.out.println(getSFileHandler().signFileUrl(fileUrl, handleType));
     }
