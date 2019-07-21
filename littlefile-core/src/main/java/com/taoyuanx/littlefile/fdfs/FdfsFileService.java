@@ -37,7 +37,6 @@ public class FdfsFileService {
 	public FdfsFileService() {
 		try {
 			ClientGlobal.initByProperties("fdfs.properties");
-			tracker = new TrackerClient();
 			LOG.info("fastdfs配置信息为:{}",ClientGlobal.configInfo());
 		} catch (Exception e) {
 			LOG.error("默认配置文件fdfs.properties 初始化配置失敗，请检查fdfs.properties 配置");
@@ -52,10 +51,8 @@ public class FdfsFileService {
 				pro.load(FdfsFileService.class.getClassLoader()
 						.getResourceAsStream(configPath.replaceFirst("classpath:", "")));
 				ClientGlobal.initByProperties(pro);
-				tracker = new TrackerClient();
 			} else {
 				ClientGlobal.init(configPath);
-				tracker = new TrackerClient();
 			}
 			LOG.info("初始化fastdfs配置信息为：{}", ClientGlobal.configInfo());
 		} catch (Exception e) {
@@ -68,7 +65,7 @@ public class FdfsFileService {
 	static TrackerClient tracker = null;
 
 	public StorageClient1 getClient() throws Exception {
-		return new StorageClient1(tracker.getConnection(), null);
+		return new StorageClient1();
 	}
 	public String upload(byte[] data,String ext,Map<String,String> metaMap) throws Exception {
 			NameValuePair[] metaList = buildMeta(metaMap);
