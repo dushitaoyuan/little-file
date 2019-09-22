@@ -65,6 +65,12 @@ littlefile.ftp.key_manager_password=
 littlefile.ftp.trust_manager_path=
 littlefile.ftp.trust_manager_password=
 
+#阿里云oss配置
+littlefile.oss.bucketName=
+littlefile.oss.AccessKeyID=
+littlefile.oss.AccessKeySecret=
+littlefile.oss.endpoint=
+
 
 #本地模式 英文,分割,支持多个本地文件目录
 littlefile.local.dirs=L:/tmp2,L:/tmp3
@@ -123,6 +129,9 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 参见 FileAuthedUrlCreate<br/>
 3.访问
 
+4.使用建议
+如系统中存在多种文件系统,建议存储文件路径时,加以区分:<br/>
+如: ftp://,oss://,fastdfs://等后端拉取文件时,根据不同文件系统拉取
 #### 仓库地址
 
 **git地址:**[https://github.com/dushitaoyuan/little-file](https://github.com/dushitaoyuan/little-file)

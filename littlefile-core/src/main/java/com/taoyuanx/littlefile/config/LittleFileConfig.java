@@ -1,5 +1,6 @@
 package com.taoyuanx.littlefile.config;
 
+import com.taoyuanx.littlefile.alioss.AliyunOssFileService;
 import com.taoyuanx.littlefile.clean.FileClean;
 import com.taoyuanx.littlefile.clean.FileCleanTask.BadFileAndPeriodDelte;
 import com.taoyuanx.littlefile.clean.FileCleanTask.CheckDelete;
@@ -8,10 +9,7 @@ import com.taoyuanx.littlefile.ftp.LittleFileFtp;
 import com.taoyuanx.littlefile.sftp.LittleFileSftp;
 import com.taoyuanx.littlefile.support.FileDownStrategy;
 import com.taoyuanx.littlefile.support.FileServerEum;
-import com.taoyuanx.littlefile.support.impl.FdfsStrategy;
-import com.taoyuanx.littlefile.support.impl.FtpStrategy;
-import com.taoyuanx.littlefile.support.impl.LocalStrategy;
-import com.taoyuanx.littlefile.support.impl.SftpStrategy;
+import com.taoyuanx.littlefile.support.impl.*;
 import com.taoyuanx.littlefile.util.Utils;
 import com.taoyuanx.littlefile.web.security.AbstractSimpleTokenManager;
 import com.taoyuanx.littlefile.web.security.HmacTokenManager;
@@ -64,6 +62,20 @@ public class LittleFileConfig {
         public static final String LITTLEFILE_LOCAL_DIRS = "littlefile.local.dirs";
     }
 
+    public static class OssConfig {
+        /**
+         * oss 相关常量配置名称
+         * ACCESSURL_EXPIRE_TIME 访问url过期时间配置名称
+         * OSS_FILE_PATH_PREFIX  oss 文件存储前缀 @see
+         */
+        public static final String BUCKET_NAME = "littlefile.oss.bucketName";
+        public static final String ACCESSKEY_ID = "littlefile.oss.AccessKeyID";
+        public static final String ACCESSKEY_SECRET = "littlefile.oss.AccessKeySecret";
+        public static final String ENDPOINT = "littlefile.oss.endpoint";
+
+        public static final String OSS_FILE_PATH_PREFIX = "o_";
+    }
+
     public static final String LITTLEFILE_SERVER_TYPE = "littlefile.server_type";
     public static final String LITTLEFILE_FILE_GZIP = "littlefile.file.gzip";
     public static final String LITTLEFILE_FILE_CACHE_TIME = "littlefile.file_cache_time";
@@ -93,26 +105,10 @@ public class LittleFileConfig {
             FileServerEum serverEum = FileServerEum.valueOf(property);
             CONFIGHOLDER.put(LITTLEFILE_SERVER_TYPE, serverEum);
             property = pro.getProperty(LITTLEFILE_FILE_CACHE_TIME);
-            Long cacheTime = LITTLEFILE_FILE_CACHE_TIME_DEFAULT;
-            if (Utils.isNotEmpty(property)) {
-                //s秒，min分钟,h小时,d天
-                if (property.endsWith("s")) {
-                    cacheTime = TimeUnit.SECONDS.toMillis(Integer.parseInt(property.replace("s", "")));
-                }
-                if (property.endsWith("min")) {
-                    cacheTime = TimeUnit.MINUTES.toMillis(Integer.parseInt(property.replace("min", "")));
-                }
-                if (property.endsWith("h")) {
-                    cacheTime = TimeUnit.HOURS.toMillis(Integer.parseInt(property.replace("h", "")));
-                }
-                if (property.endsWith("d")) {
-                    cacheTime = TimeUnit.DAYS.toMillis(Integer.parseInt(property.replace("s", "")));
-                }
-                if (property.equals("0")) {
-                    cacheTime = 0L;
-                }
-            } else {
-                cacheTime = 0L;
+            Long cacheTime = Utils.calcTimes(property);
+
+            if (null == cacheTime) {
+                cacheTime = LITTLEFILE_FILE_CACHE_TIME_DEFAULT;
             }
             CONFIGHOLDER.put(LITTLEFILE_FILE_CACHE_TIME, cacheTime);
             property = pro.getProperty(LITTLEFILE_FILE_CLEAN_THREAD_NUM);
@@ -172,6 +168,14 @@ public class LittleFileConfig {
                     CONFIGHOLDER.put(SftpConfig.LITTLEFILE_SFTP_WORKDIR, pro.getProperty(SftpConfig.LITTLEFILE_SFTP_WORKDIR));
                     CONFIGHOLDER.put(SftpConfig.LITTLEFILE_SFTP_PRIVATE_KEY, pro.getProperty(SftpConfig.LITTLEFILE_SFTP_PRIVATE_KEY));
                     CONFIGHOLDER.put(SftpConfig.LITTLEFILE_SFTP_PRIVATE_KEY_PASSWORD, pro.getProperty(SftpConfig.LITTLEFILE_SFTP_PRIVATE_KEY_PASSWORD));
+                }
+                break;
+
+                case OSS: {
+                    CONFIGHOLDER.put(OssConfig.BUCKET_NAME, pro.getProperty(OssConfig.BUCKET_NAME));
+                    CONFIGHOLDER.put(OssConfig.ACCESSKEY_ID, pro.getProperty(OssConfig.ACCESSKEY_ID));
+                    CONFIGHOLDER.put(OssConfig.ACCESSKEY_SECRET, pro.getProperty(OssConfig.ACCESSKEY_SECRET));
+                    CONFIGHOLDER.put(OssConfig.ENDPOINT, pro.getProperty(OssConfig.ENDPOINT));
                 }
                 break;
                 case LOCAL: {
@@ -241,6 +245,21 @@ public class LittleFileConfig {
                 String privateKeyPassword = getConfig(SftpConfig.LITTLEFILE_SFTP_PASSWORD);
                 LittleFileSftp littleFileSftp = new LittleFileSftp(host, port, username, password, workDir, privateKey, privateKeyPassword);
                 strategy = new SftpStrategy(littleFileSftp);
+            }
+            break;
+
+            case OSS: {
+                String msg = "oss配置丢失,请检查配置";
+                String accessKeyID = getConfig(FtpConfig.LITTLEFILE_FTP_HOST);
+                String accessKeySecret = getConfig(FtpConfig.LITTLEFILE_FTP_PORT);
+                String bucketName = getConfig(FtpConfig.LITTLEFILE_FTP_USERNAME);
+                String endpoint = getConfig(FtpConfig.LITTLEFILE_FTP_PASSWORD);
+                Utils.notNull(accessKeyID, msg);
+                Utils.notNull(accessKeySecret, msg);
+                Utils.notNull(bucketName, msg);
+                Utils.notNull(endpoint, msg);
+                AliyunOssFileService aliyunOssFileService = new AliyunOssFileService(endpoint, accessKeyID, accessKeySecret, bucketName);
+                strategy = new AliyunOssStrategy(aliyunOssFileService);
             }
             break;
             case LOCAL: {

@@ -7,6 +7,7 @@ public enum FileServerEum {
 	 */
 	FTP,
 	FDFS,
+	OSS,
 	SFTP,
 	LOCAL;
 }
