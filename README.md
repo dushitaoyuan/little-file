@@ -122,16 +122,21 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 
 ### 使用
 部分参数解释如上,也可参见示例项目:littlefile-web<br/>
-1.上传文件
+1.上传文件<br/>
 参见 LittleFile系列实现<br/>
-2.创建授权url(com.taoyuanx.littlefile.web.FileHandler.signFileUrl),
+2.创建授权url(com.taoyuanx.littlefile.web.FileHandler.signFileUrl),<br/>
 未开启安全控制时,创建公开url(com.taoyuanx.littlefile.web.FileHandler.createPublicUrl)
 参见 FileAuthedUrlCreate<br/>
-3.访问
-
-4.使用建议
+3.访问<br/>
+参见 com.taoyuanx.littlefile.sample.file.FileController<br/>
+4.使用建议<br/>
 如系统中存在多种文件系统,建议存储文件路径时,加以区分:<br/>
-如: ftp://,oss://,fastdfs://等后端拉取文件时,根据不同文件系统拉取
+如: ftp://,oss://,fastdfs://等,后端拉取文件时,根据不同文件系统拉取<br/>
+
+
+### fastdfs完全解读
+
+[fastdfs使用指南](https://github.com/dushitaoyuan/little-file/blob/master/fastdfs/fastdfs.md)
 #### 仓库地址
 
 **git地址:**[https://github.com/dushitaoyuan/little-file](https://github.com/dushitaoyuan/little-file)
