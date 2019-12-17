@@ -1,4 +1,4 @@
-#fastdfs全面详解
+# fastdfs全面详解
 
 #### fastdfs架构简介
 首先简单了解一下基础概念，FastDFS是一个开源的轻量级分布式文件系统，由跟踪服务器（tracker server）、存储服务器（storage server）和客户端（client）三个部分组成，主要解决了海量数据存储问题，特别适合以中小文件（建议范围：4KB < file_size <500MB）为载体的在线服务，如果需要对外提供http服务需要在storage server上安装nginx+fastdfs_module服务。FastDFS的系统结构图如下：<br/>
