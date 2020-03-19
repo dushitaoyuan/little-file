@@ -1,13 +1,13 @@
 # little-file
 
-#### 项目介绍
+## 项目介绍
 小型文件管理http服务,为原有的文件系统提供可靠的http服务目前支持:fatdfs,ftp,sftp,local(本地文件)图片在线预览,支持gzip压缩简单封装了,fastdfs,sftp,ftp基本操作(上传,下载)
 简单安全控制 hmac
 可在线预览pdf,图片等文件,后续可支持文件缩放,剪裁等功能
-#### 软件架构
+## 软件架构
 客户端文件请求(携带参数:文件服务器路径,token,访问类型(查看或者下载))->->web服务,拉取远端文件到Web服务器所在本地磁盘->返回文件流信息(可选gzip压缩)
 
-#### 配置详解
+## 配置详解
 ```
 #文件服务器类型 FTP,FDFS,SFTP,LOCAL(本地模式);
 littlefile.server_type=FDFS
@@ -110,17 +110,17 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 ```
 
 
-### 其他环境
+## 其他环境
 ```
 实例化 com.taoyuanx.littlefile.web.FileHandler 类,或扩展该类暴露http服务
 
 ```
 
-### 安全控制
+## 安全控制
 项目中实现了简单的安全控制,其他外部系统可引入littlefile-core包构造访问路径即可
 安全控制实现参见:com.taoyuanx.littlefile.web.security.HmacTokenManager,用户亦可自行实现
 
-### 使用
+## 使用
 部分参数解释如上,也可参见示例项目:littlefile-web<br/>
 1.上传文件<br/>
 参见 LittleFile系列实现<br/>
@@ -134,10 +134,17 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 如: ftp://,oss://,fastdfs://等,后端拉取文件时,根据不同文件系统拉取<br/>
 
 
-### fastdfs完全解读
+## fastdfs完全解读
 
-[fastdfs使用指南](https://github.com/dushitaoyuan/little-file/blob/master/fastdfs/fastdfs.md)
-#### 仓库地址
+[fastdfs使用指南](fastdfs/fastdfs.md)
+[fastdfs协议详解](fastdfs/fastdfs-protocol.md)
+
+## todo
+- http 文件服务:集合多种存储服务,包含简单功能:上传,下载,删除
+
+- fastdfs 专用http服务:封装fastdfs client 为http 方便非java语言使用
+
+## 仓库地址
 
 **git地址:**[https://github.com/dushitaoyuan/little-file](https://github.com/dushitaoyuan/little-file)
 
