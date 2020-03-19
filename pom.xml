@@ -23,8 +23,8 @@
     </properties>
 	<modules>
 		<module>littlefile-core</module>
-		<module>littlefile-sample</module>
-		<module>springboot-sample</module>
+		<module>littlefile-servlet-sample</module>
+		<module>littlefile-springboot-sample</module>
 	</modules>
 
 </project>
