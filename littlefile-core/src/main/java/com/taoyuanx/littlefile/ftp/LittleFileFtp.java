@@ -143,6 +143,9 @@ public class LittleFileFtp {
 			throw e;
 		}
 	}
+
+	
+
 	public void close() {
 		FTPClient ftpClient = clientLocal.get();
 		try {

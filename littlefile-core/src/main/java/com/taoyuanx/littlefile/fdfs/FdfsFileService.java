@@ -53,7 +53,6 @@ public class FdfsFileService {
     }
 
 
-    static TrackerClient tracker = null;
 
     public StorageClient1 getClient() throws Exception {
         return new StorageClient1();
