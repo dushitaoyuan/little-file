@@ -10,6 +10,7 @@
     </parent>
     <artifactId>littlefile-fdfs-http</artifactId>
     <modules>
+         <module>littlefile-fdfs-http-core</module>
         <module>littlefile-fdfs-http-server</module>
         <module>littlefile-fdfs-http-client</module>
     </modules>

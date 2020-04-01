@@ -1,20 +1,30 @@
 package com.taoyuanx.littlefile.server.config;
 
-import com.taoyuanx.littlefile.server.idgen.snowflake.SnowflakeIdWorker;
+import com.taoyuanx.littlefile.server.dto.Result;
+import com.taoyuanx.littlefile.server.dto.ResultBuilder;
+import com.taoyuanx.littlefile.server.ex.ServiceException;
+import com.taoyuanx.littlefile.server.security.TokenInterceptor;
 import com.taoyuanx.littlefile.server.service.FileValidateService;
 import com.taoyuanx.littlefile.server.service.impl.FileValidateServiceImpl;
+import com.taoyuanx.littlefile.server.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import com.taoyuanx.littlefile.server.security.TokenInterceptor;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Configuration
+@ControllerAdvice
 public class WebConfig implements WebMvcConfigurer {
 
 
@@ -27,13 +37,28 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(tokenInterceptor).addPathPatterns("/file/**");
     }
 
-    @Bean
-    public SnowflakeIdWorker snowflakeIdWorker(FileProperties fileProperties) {
-        return new SnowflakeIdWorker(fileProperties.getDatacenterId(), fileProperties.getMachineId());
-    }
 
     @Bean
     public FileValidateService fileValidateService(FileProperties fileProperties) {
         return new FileValidateServiceImpl(Arrays.stream(fileProperties.getAllowType().split(",")).collect(Collectors.toSet()));
+    }
+
+    @ExceptionHandler(Throwable.class)
+    public ModelAndView handleException(Exception e, HttpServletRequest request, HttpServletResponse response) {
+        ModelAndView modelAndView = new ModelAndView();
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        Integer errorCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        String errorMsg = "系统异常";
+        if (e instanceof ServiceException) {
+            errorMsg = e.getMessage();
+            ServiceException serviceException = ((ServiceException) e);
+            if (Objects.nonNull(serviceException.getErrorCode())) {
+                errorCode = serviceException.getErrorCode();
+            }
+        }
+        Result errorResult = ResultBuilder.failed(errorCode, errorMsg);
+        //返回json
+        ResponseUtil.responseJson(response, errorResult, httpStatus.value());
+        return modelAndView;
     }
 }

@@ -267,17 +267,17 @@ public class FileHandler {
         } else {
             int index = range.indexOf("-");
             String[] split = range.split("-");
-            if (RANGE_FMT_1.matcher(range).matches()) {
+            if (RANGE_FMT_START_END.matcher(range).matches()) {
                 result[0] = Long.parseLong(split[0]);
                 result[1] = Long.parseLong(split[1]);
                 return result;
             }
-            if (RANGE_FMT_2.matcher(range).matches()) {
+            if (RANGE_FMT_START_TILL_END.matcher(range).matches()) {
                 result[0] = Long.parseLong(split[0]);
                 result[1] = fileSize;
                 return result;
             }
-            if (RANGE_FMT_3.matcher(range).matches()) {
+            if (RANGE_FMT_BYTES_END.matcher(range).matches()) {
                 result[0] = fileSize - Long.parseLong(split[0]);
                 result[1] = fileSize - 1;
                 return result;
@@ -287,9 +287,8 @@ public class FileHandler {
         return null;
     }
 
-    private static Pattern RANGE_FMT_1 = Pattern.compile("^[0-9]{1,}-[0-9]{1,}$");
-    private static Pattern RANGE_FMT_2 = Pattern.compile("^[0-9]{1,}-$");
-    private static Pattern RANGE_FMT_3 = Pattern.compile("^-[0-9]{1,}$");
-
+    private static Pattern RANGE_FMT_START_END = Pattern.compile("^[0-9]{1,}-[0-9]{1,}$");
+    private static Pattern RANGE_FMT_START_TILL_END = Pattern.compile("^[0-9]{1,}-$");
+    private static Pattern RANGE_FMT_BYTES_END = Pattern.compile("^-[0-9]{1,}$");
     private static String CONTENTRANGE_FMT = "bytes %s-%s/%s";
 }

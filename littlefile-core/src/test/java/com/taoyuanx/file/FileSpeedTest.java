@@ -20,6 +20,7 @@ public class FileSpeedTest {
      * 另外也对比了MappedByteBuffer的使用坑点(关闭bug,超大文件),所以决定使用filechannel
      *
      */
+
     @Test
     public void fileChannelTest() throws Exception {
         Long start=System.currentTimeMillis();

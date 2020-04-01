@@ -121,7 +121,7 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 安全控制实现参见:com.taoyuanx.littlefile.web.security.HmacTokenManager,用户亦可自行实现
 
 ## 使用
-部分参数解释如上,也可参见示例项目:littlefile-web<br/>
+部分参数解释如上,也可参见示例项目:littlefile-xxx-samples<br/>
 1.上传文件<br/>
 参见 LittleFile系列实现<br/>
 2.创建授权url(com.taoyuanx.littlefile.web.FileHandler.signFileUrl),<br/>

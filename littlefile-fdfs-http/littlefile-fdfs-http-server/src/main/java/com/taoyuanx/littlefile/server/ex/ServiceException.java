@@ -1,30 +1,24 @@
 package com.taoyuanx.littlefile.server.ex;
 
-
-/**
- * @author dushitaoyuan
- *  业务异常
- */
 public class ServiceException extends RuntimeException {
+    private static final long serialVersionUID = 8793672380339632040L;
+    private Integer errorCode;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -907834946583023231L;
+    public ServiceException(String msg) {
+        super(msg);
+        this.errorCode = 500;
+    }
 
-	public ServiceException() {
-		super();
-	}
+    public ServiceException(Integer errorCode, String msg) {
+        super(msg);
+        if (errorCode != null) {
+            this.errorCode = errorCode;
+        }
 
-	public ServiceException(String message) {
-		super(message);
-	}
-	public ServiceException(String message,Throwable cause) {
-		super(message,cause);
-	}
+    }
 
-	public ServiceException(Throwable cause) {
-		super(cause);
-	}
+    public Integer getErrorCode() {
+        return errorCode;
+    }
 
 }

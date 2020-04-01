@@ -1,10 +1,12 @@
 package com.taoyuanx.littlefile.client.impl;
 
 
-import com.taoyuanx.littlefile.client.ClientConfig;
-import com.taoyuanx.littlefile.client.FastFileClientFactory;
-import com.taoyuanx.littlefile.client.FileClient;
+import com.taoyuanx.littlefile.client.core.ClientConfig;
+import com.taoyuanx.littlefile.client.core.FastFileClientFactory;
+import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
 import com.taoyuanx.littlefile.client.impl.security.TokenInterceptor;
+import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -12,30 +14,43 @@ import okhttp3.OkHttpClient;
 import javax.net.ssl.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author 都市桃源 工厂实现
+ *
  */
-public class DefaultFastFileClientFactory implements FastFileClientFactory {
+@Slf4j
+public class DefaultSingletonFastFileClientFactory implements FastFileClientFactory {
     private ClientConfig config;
 
-    public static FileClient fileClient;
+
+    public DefaultSingletonFastFileClientFactory(ClientConfig config) {
+        this.config = config;
+    }
+
+    public DefaultSingletonFastFileClientFactory() {
+        this.config = new ClientConfig(ClientConfig.DEFAULT_CONFIG);
+    }
+
+    private static FileClient fileClient;
 
     @Override
     public FileClient getFileClient() {
         if (null == fileClient) {
-            throw new RuntimeException("DefaultFastFileClientFactory 未进行初始化");
+            synchronized (DefaultSingletonFastFileClientFactory.class) {
+                if (null == fileClient) {
+                    init();
+                }
+            }
         }
         return fileClient;
     }
 
     /**
-     * 初始化okhttp client,支持https
+     * 初始化
      */
-    public void init() {
+    private void init() {
         try {
             //1 初始化http client
             SSLParams sslParams = new SSLParams();
@@ -44,7 +59,7 @@ public class DefaultFastFileClientFactory implements FastFileClientFactory {
             sslContext.init(null, new TrustManager[]{trustManager}, null);
             sslParams.sSLSocketFactory = sslContext.getSocketFactory();
             sslParams.trustManager = trustManager;
-            Interceptor interceptor = new TokenInterceptor(config.getToken());
+            Interceptor tokenInterceptor = new TokenInterceptor(config.getToken());
             OkHttpClient client = new OkHttpClient().newBuilder().hostnameVerifier(new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
@@ -53,38 +68,21 @@ public class DefaultFastFileClientFactory implements FastFileClientFactory {
                 }
             }).sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager)
                     .connectTimeout(config.getConnectTimeout(), TimeUnit.SECONDS)//连接超时时间
-                    .connectionPool(new ConnectionPool(config.getConnectTimeout(), config.getKeepAliveDuration(), TimeUnit.SECONDS))//连接数量,保持连接时间
+                    .connectionPool(new ConnectionPool(config.getMaxIdleConnections(), config.getKeepAliveDuration(), TimeUnit.SECONDS))//连接数量,保持连接时间
                     .retryOnConnectionFailure(false)//重试策略
-                    .addInterceptor(interceptor)
-                    //.addInterceptor(new LoggerInterceptor("ou",true))
+                    .addInterceptor(tokenInterceptor)
                     .build();
 
-            //2. 初始化 文件客户端
-            Map<String, String> fileClientImplBaseUrls = new HashMap<String, String>();
-            String fileClientBaseUrl = config.getServerUrl() + "file/";
-            //文件上传
-            fileClientImplBaseUrls.put("upload", fileClientBaseUrl + "upload");
-            //从文件上传
-            fileClientImplBaseUrls.put("uploadSlave", fileClientBaseUrl + "uploadSlave");
-            //文件删除
-            fileClientImplBaseUrls.put("delete", fileClientBaseUrl + "removeFile");
-            //文件下载
-            fileClientImplBaseUrls.put("download", fileClientBaseUrl + "download");
-            //图片上传(可自定义是否生成预览图)
-            fileClientImplBaseUrls.put("uploadImage", fileClientBaseUrl + "image/upload");
-            //获取文件信息
-            fileClientImplBaseUrls.put("getFileInfo", fileClientBaseUrl + "getFileInfo");
 
-
-            FileClientImpl.client = client;
-            FileClientImpl.baseUrls = fileClientImplBaseUrls;
-
-
-            if (null == fileClient) {
-                fileClient = new FileClientImpl();
-            }
+            List<FdfsFileClientConstant.FdfsApi> fdfsApiList = Arrays.asList(FdfsFileClientConstant.FdfsApi.values());
+            String fileClientBaseUrl = config.getFdfsHttpBaseUrl();
+            Map<FdfsFileClientConstant.FdfsApi, String> apiMap = new HashMap(fdfsApiList.size());
+            fdfsApiList.stream().forEach(api -> {
+                apiMap.put(api, fileClientBaseUrl + api.path);
+            });
+            fileClient = new FileClientImpl(client, apiMap);
         } catch (Exception e) {
-            System.err.println(e);
+            log.error("初始化失败", e);
         }
     }
 
@@ -99,24 +97,16 @@ public class DefaultFastFileClientFactory implements FastFileClientFactory {
         public void checkClientTrusted(X509Certificate[] chain, String authType)
                 throws CertificateException {
         }
+
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType)
                 throws CertificateException {
         }
+
         @Override
         public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[]{};
         }
     }
-
-    public ClientConfig getConfig() {
-        if (config == null) config = new ClientConfig();
-        return config;
-    }
-
-    public void setConfig(ClientConfig config) {
-        this.config = config;
-    }
-
 
 }

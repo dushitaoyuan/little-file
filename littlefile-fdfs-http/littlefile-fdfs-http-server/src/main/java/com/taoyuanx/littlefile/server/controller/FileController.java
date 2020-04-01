@@ -1,32 +1,35 @@
 package com.taoyuanx.littlefile.server.controller;
 
-import java.io.File;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.taoyuanx.littlefile.fdfshttp.core.dto.FileInfo;
+import com.taoyuanx.littlefile.fdfshttp.core.dto.MasterAndSlave;
+import com.taoyuanx.littlefile.server.anno.NeedToken;
 import com.taoyuanx.littlefile.server.config.FileProperties;
-import com.taoyuanx.littlefile.server.dto.MasterAndSlave;
 import com.taoyuanx.littlefile.server.dto.PreviewType;
-import com.taoyuanx.littlefile.server.dto.FileInfo;
+import com.taoyuanx.littlefile.server.dto.Result;
+import com.taoyuanx.littlefile.server.dto.ResultBuilder;
 import com.taoyuanx.littlefile.server.ex.ServiceException;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-
+import com.taoyuanx.littlefile.server.service.FastdfsService;
+import com.taoyuanx.littlefile.server.utils.ByteRangeUtil;
+import com.taoyuanx.littlefile.server.utils.CodeUtil;
+import com.taoyuanx.littlefile.server.utils.PdfToImage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import com.taoyuanx.littlefile.server.service.FastdfsService;
-import com.taoyuanx.littlefile.server.utils.CodeUtil;
-import com.taoyuanx.littlefile.server.utils.PdfToImage;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * create by lorne on 2017/9/26
@@ -34,6 +37,7 @@ import com.taoyuanx.littlefile.server.utils.PdfToImage;
 @RestController
 @RequestMapping("/file")
 @Api(value = "文件通用服务接口")
+@NeedToken
 public class FileController {
 
     @Autowired
@@ -41,39 +45,41 @@ public class FileController {
     @Autowired
     FileProperties fileProperties;
 
-    @ApiOperation(value = "上传文件", notes = "上传文件")
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public String uploadFile(
+    private static final int BUFFER_SIZE = 4 << 20;
 
+    @ApiOperation(value = "上传文件", notes = "上传文件")
+    @PostMapping(value = "/upload")
+    public Result uploadFile(
             @ApiParam(value = "文件流,name=file", required = true) @RequestParam("file") MultipartFile file)
             throws ServiceException {
-        return fastdfsService.uploadFile(file);
+        return ResultBuilder.successResult(fastdfsService.uploadFile(file));
     }
 
     @ApiOperation(value = "上传从文件", notes = "上传从文件,上传从文件时,多个从文件名称一定要不同,如果不指定,服务端在文件名基础上随机生成")
-    @RequestMapping(value = "/uploadSlave", method = RequestMethod.POST)
-    public String uploadSlaveFile(
+    @PostMapping(value = "/uploadSlave")
+    public Result uploadSlaveFile(
             @ApiParam(value = "从文件流,name=file", required = true) @RequestParam("file") MultipartFile file,
 
             @ApiParam(value = "主文件名称", required = false) @RequestParam("masterFileId") String masterFileId,
             @ApiParam(value = "前缀名称", required = false) @RequestParam(value = "prefixName", required = false) String prefixName)
             throws ServiceException {
         if (StringUtils.isEmpty(prefixName)) {
-            return fastdfsService.uploadSlaveFile(masterFileId, file);
+            return ResultBuilder.successResult(fastdfsService.uploadSlaveFile(masterFileId, file));
         }
-        return fastdfsService.uploadSlaveFile(masterFileId, prefixName, file);
+        return ResultBuilder.successResult(fastdfsService.uploadSlaveFile(masterFileId, prefixName, file));
     }
 
     @ApiOperation(value = "删除文件", notes = "删除文件")
-    @RequestMapping(value = "/removeFile", method = RequestMethod.DELETE)
-    public boolean removeFile(@ApiParam(value = "文件名称", required = true) @RequestParam("fileId") String fileId)
+    @DeleteMapping(value = "/removeFile")
+    public Result removeFile(@ApiParam(value = "文件名称", required = true) @RequestParam("fileId") String fileId)
             throws ServiceException {
-        return fastdfsService.removeFile(fileId);
+        fastdfsService.removeFile(fileId);
+        return ResultBuilder.success();
     }
 
     @ApiOperation(value = "上传图片", notes = "上传图片,可自由选择是否生成预览图,如果不传递cutSize,则不生成")
-    @RequestMapping(value = "/image/upload", method = RequestMethod.POST)
-    public MasterAndSlave uploadImage(
+    @PostMapping(value = "/image/upload")
+    public Result uploadImage(
 
             @ApiParam(value = "文件流,name=file", required = true) @RequestParam(value = "file") MultipartFile file,
 
@@ -83,80 +89,123 @@ public class FileController {
         if (StringUtils.isEmpty(cutSize)) {
             MasterAndSlave result = new MasterAndSlave();
             result.setMaster(fastdfsService.uploadFile(file));
-            return result;
+            return ResultBuilder.success(result);
         }
-        return fastdfsService.uploadImageAndThumb(cutSize, file);
+        return ResultBuilder.success(fastdfsService.uploadImageAndThumb(cutSize, file));
     }
 
     @ApiOperation(value = "文件下载", notes = "文件下载操作")
-    @RequestMapping(value = "download", method = RequestMethod.GET)
+    @GetMapping(value = "download")
     public void download(
             @ApiParam(value = "下载fileId", required = true) @RequestParam(value = "fileId", required = true) String fileId,
-            HttpServletResponse resp, HttpServletRequest req) throws ServiceException {
+            HttpServletResponse response, HttpServletRequest request) throws Exception {
         File tempFile = new File(fileProperties.getFileCacheDir(), fileId);
         if (false == tempFile.getParentFile().exists()) {
             tempFile.getParentFile().mkdirs();
         }
         if (!tempFile.exists()) {
-            fastdfsService.download(fileId, tempFile.getAbsolutePath());
+            fastdfsService.download(fileId, new FileOutputStream(tempFile));
         }
-        try {
-            resp.setContentType(req.getServletContext().getMimeType(tempFile.getName()));
-            resp.setHeader("Content-type", "application/octet-stream");
-            resp.setHeader("Content-Disposition", "attachment;fileName=" + CodeUtil.getUUID() + tempFile.getName());
-            resp.getOutputStream().write(FileUtils.readFileToByteArray(tempFile));
-        } catch (Exception e) {
-            throw new ServiceException("文件下载失败", e);
-        }
+        response.setHeader("Content-type", "application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment;fileName=" +tempFile.getName());
+        transferToOutStream(tempFile, response.getOutputStream());
     }
 
+    @ApiOperation(value = "文件断点下载", notes = "文件下载操作")
+    @GetMapping(value = "download/range")
+    public void byteRangedownload(
+            @ApiParam(value = "下载fileId", required = true) @RequestParam(value = "fileId", required = true) String fileId,
+            HttpServletResponse response, HttpServletRequest request) throws Exception {
+        String range = request.getHeader("Range");
+        if (range.contains(",")) {
+            throw new ServiceException("断点下载, header Range: [" + range + "]不支持");
+        }
+        Long start, len;
+        response.setHeader("Accept-Ranges", "bytes");
+        String tempRange = range.replaceFirst("bytes=", "");
+        String[] split = range.split("-");
+        if (ByteRangeUtil.RANGE_FMT_START_END.matcher(tempRange).matches()) {
+            start = Long.parseLong(split[0]);
+            len = Long.parseLong(split[1]);
+        } else if (ByteRangeUtil.RANGE_FMT_START_TILL_END.matcher(tempRange).matches()) {
+            start = Long.parseLong(split[0]);
+            len = 0L;
+        } else if (ByteRangeUtil.RANGE_FMT_BYTES_END.matcher(tempRange).matches()) {
+            FileInfo fileInfo = fastdfsService.getFileInfo(fileId);
+            len = Long.parseLong(split[1]);
+            start = fileInfo.getFile_size() - len;
+        } else {
+            throw new ServiceException("断点下载, header Range: [" + range + "]不支持");
+        }
+
+        response.setHeader("Content-type", "application/octet-stream");
+        response.setHeader("Content-Disposition",
+                "attachment;fileName=" + URLEncoder.encode(FilenameUtils.getName(fileId), "UTF-8"));
+        //格式 bytes %s-%s/%s
+        response.addHeader(" Content-Range", String.format(ByteRangeUtil.CONTENTRANGE_FMT, start, start + len, len));
+        fastdfsService.download(fileId, start, len, response.getOutputStream());
+        response.getOutputStream().close();
+    }
+
+
     @ApiOperation(value = "获取文件信息", notes = "获取文件信息")
-    @RequestMapping(value = "getFileInfo", method = RequestMethod.GET)
-    public FileInfo getFileInfo(
+    @GetMapping(value = "info")
+    public Result getFileInfo(
             @ApiParam(value = "下载fileId", required = true) @RequestParam(value = "fileId", required = true) String fileId)
             throws ServiceException {
-        return fastdfsService.getFileInfo(fileId);
+        return ResultBuilder.success(fastdfsService.getFileInfo(fileId));
     }
 
     @ApiOperation(value = "预览文件", notes = "直接向页面输出流,可直接预览图片,pdf等,后期可支持多文件预览,office,pdf-图片,"
             + "压缩包在线预览,当然这不是本项目的重点所在,预览url:http://xx:port/file/preview?fileId=group1/M00/00/01/wKhbyVqo4S2AZ7swAAJWdlvYGRY480.pdf")
-    @RequestMapping(value = "preview", method = RequestMethod.GET)
+    @GetMapping(value = "preview")
     public void preview(
             @ApiParam(value = "预览文件fileId", required = true) @RequestParam(value = "fileId", required = true) String fileId,
             @ApiParam(value = "预览类型,如果不输入类型,则直接返回文件流,经测试pc端,可直接使用iframe预览pdf,img标签预览图片,移动端浏览器不支持,需将pdf转为图片", required = false) @RequestParam(value = "previewType", required = false) Integer previewType,
-            HttpServletRequest req, HttpServletResponse resp) throws ServiceException {
+            HttpServletRequest request, HttpServletResponse response) throws Exception {
         File tempFile = new File(fileProperties.getFileCacheDir(), fileId);
-
         if (false == tempFile.getParentFile().exists()) {
             tempFile.getParentFile().mkdirs();
         }
         if (!tempFile.exists()) {
-            fastdfsService.download(fileId, tempFile.getAbsolutePath());
+            fastdfsService.download(fileId, new FileOutputStream(tempFile));
         }
-        try {
-            if (StringUtils.isEmpty(previewType)) {
-                // 查看
-                resp.setContentType(req.getServletContext().getMimeType(tempFile.getName()));
-                resp.getOutputStream().write(FileUtils.readFileToByteArray(tempFile));
-                return;
-            }
-            switch (PreviewType.getByCode(previewType)) {
-                case PDF_TO_IMG: {
-                    File imgFile = new File(tempFile.getAbsolutePath().replace(".pdf", ".jpg"));
-                    if (!imgFile.exists()) {
-                        PdfToImage.pdfToOneImage(tempFile, imgFile);
-                    }
-                    resp.setContentType(req.getServletContext().getMimeType(imgFile.getName()));
-                    resp.getOutputStream().write(FileUtils.readFileToByteArray(imgFile));
+        if (StringUtils.isEmpty(previewType)) {
+            // 查看
+            response.setContentType(request.getServletContext().getMimeType(tempFile.getName()));
+            transferToOutStream(tempFile, response.getOutputStream());
+            return;
+        }
+        /**
+         * pdf 渲染图片
+         */
+        switch (PreviewType.getByCode(previewType)) {
+            case PDF_TO_IMG: {
+                File imgFile = new File(tempFile.getAbsolutePath().replace(".pdf", ".jpg"));
+                if (!imgFile.exists()) {
+                    PdfToImage.pdfToOneImage(tempFile, imgFile);
                 }
-                return;
-                default:
-                    break;
+                response.setContentType(request.getServletContext().getMimeType(imgFile.getName()));
+                transferToOutStream(tempFile, response.getOutputStream());
             }
-        } catch (Exception e) {
-            throw new ServiceException(e);
+            return;
+            default:
+                break;
         }
 
+
+    }
+
+    private void transferToOutStream(File tempFile, OutputStream outputStream) throws Exception {
+        RandomAccessFile dest = new RandomAccessFile(tempFile, "r");
+        FileChannel channel = dest.getChannel();
+        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+        int len = 0;
+        while ((len = channel.read(buffer)) > 0) {
+            buffer.flip();
+            outputStream.write(buffer.array(), 0, len);
+            buffer.clear();
+        }
     }
 
 }

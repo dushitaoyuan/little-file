@@ -1,10 +1,11 @@
 package com.taoyuanx.littlefile.server.service;
 
-import com.taoyuanx.littlefile.server.dto.FileInfo;
-import com.taoyuanx.littlefile.server.dto.MasterAndSlave;
+import com.taoyuanx.littlefile.fdfshttp.core.dto.FileInfo;
+import com.taoyuanx.littlefile.fdfshttp.core.dto.MasterAndSlave;
 import com.taoyuanx.littlefile.server.ex.ServiceException;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.OutputStream;
 
 
 public interface FastdfsService {
@@ -48,11 +49,24 @@ public interface FastdfsService {
     boolean removeFile(String fileId) throws ServiceException;
 	/**文件下载
 	 * @param fileId
-	 * @param destFile
+	 * @param outputStream
 	 * @throws ServiceException
 	 */
-	void download(String fileId, String destFile) throws ServiceException;
-	
+	void download(String fileId, OutputStream outputStream) throws ServiceException;
+
+
+	/**文件断点 下载
+	 * @param fileId
+	 * @param outputStream
+	 * @param start 起始位置
+	 * @param len 下载长度
+	 * @throws ServiceException
+	 */
+	void download(String fileId, Long start,Long len,OutputStream outputStream) throws ServiceException;
+
+
+
+
 	/** 通过文件id 获取文件信息
 	 * @param fileId
 	 * @return

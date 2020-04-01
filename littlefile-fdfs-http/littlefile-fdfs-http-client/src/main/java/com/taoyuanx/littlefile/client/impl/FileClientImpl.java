@@ -1,264 +1,242 @@
 package com.taoyuanx.littlefile.client.impl;
 
-import com.taoyuanx.littlefile.client.FileClient;
+import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
+import com.taoyuanx.littlefile.client.core.ParamBuilder;
+import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
 import com.taoyuanx.littlefile.client.utils.StrUtil;
-import okhttp3.*;
+import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
+import com.taoyuanx.littlefile.fdfshttp.core.dto.FileInfo;
+import com.taoyuanx.littlefile.fdfshttp.core.dto.MasterAndSlave;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.io.OutputStream;
 import java.util.Map;
 
 public class FileClientImpl implements FileClient {
-    public static OkHttpClient client;
-    public static Map<String, String> baseUrls;
+    private OkHttpClient client;
+    private Map<FdfsFileClientConstant.FdfsApi, String> apiMap;
+
+    public FileClientImpl(OkHttpClient client, Map<FdfsFileClientConstant.FdfsApi, String> apiMap) {
+        this.client = client;
+        this.apiMap = apiMap;
+    }
 
     @Override
     public String upload(String localFile) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            File file = new File(localFile);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(file.getName())), file);
-            builder.addFormDataPart("file", file.getName(), fileBody);
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("upload"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        File file = new File(localFile);
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, file).build();
+        OkHttpUtil.addParams(builder, paramMap);
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
+
     }
 
     @Override
     public String upload(byte[] fileBytes, String fileName) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(fileName)), fileBytes);
-            builder.addFormDataPart("file", fileName, fileBody);
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("upload"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileBytes)
+                .addParam(FdfsFileClientConstant.FILE_NAME_KEY, fileName).build();
+        OkHttpUtil.addParams(builder, paramMap);
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
+
     }
 
     @Override
     public String upload(InputStream fileInput, String fileName) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(fileName)), OkHttpUtil.streamToArray(fileInput));
-            builder.addFormDataPart("file", fileName, fileBody);
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("upload"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileInput)
+                .addParam(FdfsFileClientConstant.FILE_NAME_KEY, fileName).build();
+        OkHttpUtil.addParams(builder, paramMap);
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
+
     }
 
     @Override
     public String uploadSlave(String localFile, String masterFileId) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            File file = new File(localFile);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(file.getName())), file);
-            builder.addFormDataPart("file", file.getName(), fileBody);
-            if (StrUtil.isEmpty(masterFileId)) {
-                throw new RuntimeException("主文件id为空");
-            }
-            Map<String, String> params = new HashMap<String, String>(1);
-            params.put("masterFileId", masterFileId);
-            OkHttpUtil.addParams(builder, params);
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("uploadSlave"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        File file = new File(localFile);
+        if (StrUtil.isEmpty(masterFileId)) {
+            throw new FdfsException("主文件id为空");
         }
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, file)
+                .addParam("masterFileId", masterFileId).build();
+        OkHttpUtil.addParams(builder, paramMap);
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_SLAVE))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
+
     }
 
     @Override
     public String uploadSlave(byte[] fileBytes, String fileName, String masterFileId) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(fileName)), fileBytes);
-            builder.addFormDataPart("file", fileName, fileBody);
-            if (StrUtil.isEmpty(masterFileId)) {
-                throw new RuntimeException("主文件id为空");
-            }
-            Map<String, String> params = new HashMap<String, String>(1);
-            params.put("masterFileId", masterFileId);
-            OkHttpUtil.addParams(builder, params);
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("uploadSlave"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        if (StrUtil.isEmpty(masterFileId)) {
+            throw new FdfsException("主文件id为空");
         }
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileBytes)
+                .addParam("masterFileId", masterFileId).build();
+        OkHttpUtil.addParams(builder, paramMap);
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_SLAVE))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
+
     }
 
     @Override
     public String uploadSlave(InputStream fileInput, String fileName,
                               String masterFileId) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(fileName)), OkHttpUtil.streamToArray(fileInput));
-            builder.addFormDataPart("file", fileName, fileBody);
-            if (StrUtil.isEmpty(masterFileId)) {
-                throw new RuntimeException("主文件id为空");
-            }
-            Map<String, String> params = new HashMap<String, String>(1);
-            params.put("masterFileId", masterFileId);
-            OkHttpUtil.addParams(builder, params);
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("uploadSlave"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        if (StrUtil.isEmpty(masterFileId)) {
+            throw new FdfsException("主文件id为空");
         }
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileInput)
+                .addParam("masterFileId", masterFileId).build();
+        OkHttpUtil.addParams(builder, paramMap);
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_SLAVE))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
+
     }
 
     @Override
-    public boolean delete(String fileId) {
-        try {
-            StringBuilder delteUrl = new StringBuilder(baseUrls.get("delete"));
-            delteUrl.append("?").append("fileId").append("=").append(fileId);
-            String res = OkHttpUtil.doCall(client,
-                    new Request.Builder().url(delteUrl.toString()).delete()
-                            .build()).string();
-            if ("true".equals(res)) {
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public void delete(String fileId) {
+        String deleteUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.REMOVE) + "?fileId=" + fileId;
+        OkHttpUtil.request(client,
+                new Request.Builder().url(deleteUrl).delete().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG)
+                        .build(), null);
     }
 
     @Override
     public void downLoad(String fileId, String destFile) {
-        try {
-            StringBuilder delteUrl = new StringBuilder(baseUrls.get("download"));
-            delteUrl.append("?").append("fileId").append("=").append(fileId);
-            ResponseBody body = OkHttpUtil.doCall(client, new Request.Builder()
-                    .url(delteUrl.toString()).get().build());
-
-            FileOutputStream dest = new FileOutputStream(destFile);
-            InputStream input = body.byteStream();
-            byte[] b = new byte[1024];
-            int len = 0;
-            while ((len = input.read(b)) != -1) {
-                dest.write(b, 0, len);
-                dest.flush();
-            }
-            dest.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD) + "?fileId=" + fileId;
+        Response response = OkHttpUtil.request(client, new Request.Builder()
+                .url(downloadUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+        OkHttpUtil.transferTo(response.body().byteStream(), new File(destFile));
+        response.close();
     }
+
+    @Override
+    public void downLoad(String fileId, OutputStream output) {
+        String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD) + "?fileId=" + fileId;
+        Response response = OkHttpUtil.request(client, new Request.Builder()
+                .url(downloadUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+        OkHttpUtil.transferTo(response.body().byteStream(), output);
+        response.close();
+    }
+
 
     @Override
     public byte[] downLoad(String fileId) {
         try {
-            StringBuilder delteUrl = new StringBuilder(baseUrls.get("download"));
-            delteUrl.append("?").append("fileId").append("=").append(fileId);
-            ResponseBody body = OkHttpUtil.doCall(client, new Request.Builder()
-                    .url(delteUrl.toString()).get().build());
-            return body.bytes();
+            String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD) + "?fileId=" + fileId;
+            Response response = OkHttpUtil.request(client, new Request.Builder()
+                    .url(downloadUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+            byte[] bytes = response.body().bytes();
+            response.close();
+            return bytes;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FdfsException("下载异常", e);
         }
     }
 
     @Override
-    public String uploadImage(String localFile, String cutSize) {
+    public void downLoadRange(String fileId, Long start, Long len, OutputStream output) {
+        String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD_RANGE) + "?fileId=" + fileId;
+        Response response = OkHttpUtil.request(client, new Request.Builder()
+                .url(downloadUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+        OkHttpUtil.transferTo(response.body().byteStream(), output);
+        response.close();
+
+    }
+
+    @Override
+    public byte[] downLoadRange(String fileId, Long start, Long len) {
         try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            File local = new File(localFile);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(local.getName())), localFile);
-            builder.addFormDataPart("file", local.getName(), fileBody);
-            if (!StrUtil.isEmpty(cutSize)) {
-                Map<String, String> params = new HashMap<String, String>(1);
-                params.put("cutSize", cutSize);
-                OkHttpUtil.addParams(builder, params);
-            }
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("uploadImage"))
-                            .post(builder.build()).build()).string();
+            String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD_RANGE) + "?fileId=" + fileId;
+            Response response = OkHttpUtil.request(client, new Request.Builder()
+                    .url(downloadUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+            byte[] bytes = response.body().bytes();
+            response.close();
+            return bytes;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FdfsException("下载异常", e);
         }
     }
 
     @Override
-    public String uploadImage(byte[] fileBytes, String fileName, String cutSize) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(fileName)), fileBytes);
-            builder.addFormDataPart("file", fileName, fileBody);
-            if (!StrUtil.isEmpty(cutSize)) {
-                Map<String, String> params = new HashMap<String, String>(1);
-                params.put("cutSize", cutSize);
-                OkHttpUtil.addParams(builder, params);
-            }
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("uploadImage"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public MasterAndSlave uploadImage(String localFile, String cutSize) {
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        File local = new File(localFile);
+        ParamBuilder paramBuilder = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, local);
+        if (StrUtil.isNotEmpty(cutSize)) {
+            paramBuilder.addParam("cutSize", cutSize);
         }
+        OkHttpUtil.addParams(builder, paramBuilder.build());
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_IMG))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), MasterAndSlave.class);
+
     }
 
     @Override
-    public String uploadImage(InputStream fileInput, String fileName,
-                              String cutSize) {
-        try {
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM);
-            RequestBody fileBody = RequestBody.create(
-                    MediaType.parse(OkHttpUtil.guessMimeType(fileName)), OkHttpUtil.streamToArray(fileInput));
-            builder.addFormDataPart("file", fileName, fileBody);
-            if (!StrUtil.isEmpty(cutSize)) {
-                Map<String, String> params = new HashMap<String, String>(1);
-                params.put("cutSize", cutSize);
-                OkHttpUtil.addParams(builder, params);
-            }
-            return OkHttpUtil.doCall(client,
-                    new Request.Builder().url(baseUrls.get("uploadImage"))
-                            .post(builder.build()).build()).string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public MasterAndSlave uploadImage(byte[] fileBytes, String fileName, String cutSize) {
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        ParamBuilder paramBuilder = ParamBuilder.newBuilder()
+                .addParam(FdfsFileClientConstant.FILE_KEY, fileBytes)
+                .addParam(FdfsFileClientConstant.FILE_NAME_KEY, fileName);
+        if (StrUtil.isNotEmpty(cutSize)) {
+            paramBuilder.addParam("cutSize", cutSize);
         }
+        OkHttpUtil.addParams(builder, paramBuilder.build());
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_IMG))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), MasterAndSlave.class);
+
     }
 
     @Override
-    public String getFileInfo(String fileId) {
-        try {
-            StringBuilder delteUrl = new StringBuilder(baseUrls.get("getFileInfo"));
-            delteUrl.append("?").append("fileId").append("=").append(fileId);
-            ResponseBody body = OkHttpUtil.doCall(client, new Request.Builder()
-                    .url(delteUrl.toString()).get().build());
-            return body.string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public MasterAndSlave uploadImage(InputStream fileInput, String fileName,
+                                      String cutSize) {
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        ParamBuilder paramBuilder = ParamBuilder.newBuilder()
+                .addParam(FdfsFileClientConstant.FILE_KEY, fileInput)
+                .addParam(FdfsFileClientConstant.FILE_NAME_KEY, fileName);
+        if (StrUtil.isNotEmpty(cutSize)) {
+            paramBuilder.addParam("cutSize", cutSize);
         }
+        OkHttpUtil.addParams(builder, paramBuilder.build());
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_IMG))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), MasterAndSlave.class);
+
+    }
+
+    @Override
+    public FileInfo getFileInfo(String fileId) {
+        String fileInfoUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.FILE_INFO) + "?fileId=" + fileId;
+        return OkHttpUtil.request(client, new Request.Builder()
+                .url(fileInfoUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), FileInfo.class);
+
     }
 }

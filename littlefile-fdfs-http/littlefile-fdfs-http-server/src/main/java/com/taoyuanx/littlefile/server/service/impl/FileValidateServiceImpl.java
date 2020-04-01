@@ -1,8 +1,6 @@
 package com.taoyuanx.littlefile.server.service.impl;
 
-import com.taoyuanx.littlefile.server.ex.ParamException;
 import com.taoyuanx.littlefile.server.ex.ServiceException;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.taoyuanx.littlefile.server.service.FileValidateService;
 import com.taoyuanx.littlefile.server.utils.FilenameUtils;
@@ -23,9 +21,8 @@ public class FileValidateServiceImpl implements FileValidateService {
     @Override
     public void validateFile(MultipartFile file) throws ServiceException {
         String ext = FilenameUtils.getExtension(file.getOriginalFilename());
-
         if(!exts.contains(ext)){
-            throw new ParamException("file type error.");
+            throw new ServiceException("file type error.");
         }
     }
 
