@@ -44,7 +44,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @ExceptionHandler(Throwable.class)
-    public ModelAndView handleException(Exception e, HttpServletRequest request, HttpServletResponse response) {
+    public ModelAndView handleException(Throwable e, HttpServletRequest request, HttpServletResponse response) {
         ModelAndView modelAndView = new ModelAndView();
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         Integer errorCode = HttpStatus.INTERNAL_SERVER_ERROR.value();

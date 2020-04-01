@@ -61,8 +61,11 @@ public class TestFileClient {
      */
     @Test
     public void testDownLoadRannge() throws Exception {
-        String fileId = "group1/M00/00/00/wKgD0l6E2GeAFrLRAAB5ok9XEwo822.png";
-        FileByteRangeDownLoad fileByteRangeDownLoad = new FileByteRangeDownLoad(client, fileId, new FileOutputStream("g://range.png"));
+     /*   String upload = client.upload("d://11.7z");
+        String fileId = upload;
+        System.out.println(fileId);*/
+        String fileId="group1/M00/00/00/wKgeyF6EoVGAHKgoAMabiRD7QQE4425.7z";
+        FileByteRangeDownLoad fileByteRangeDownLoad = new FileByteRangeDownLoad(client, fileId, new FileOutputStream("d://range.7z"));
         fileByteRangeDownLoad.downLoad();
     }
 

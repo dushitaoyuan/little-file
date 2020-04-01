@@ -158,21 +158,22 @@ public class FileClientImpl implements FileClient {
     }
 
     @Override
-    public void downLoadRange(String fileId, Long start, Long len, OutputStream output) {
+    public void downLoadRange(String fileId, Long start, Long end, OutputStream output) {
         String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD_RANGE) + "?fileId=" + fileId;
         Response response = OkHttpUtil.request(client, new Request.Builder()
-                .url(downloadUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+                .url(downloadUrl).get().addHeader(FdfsFileClientConstant.RANGE_HEADER,OkHttpUtil.rangeHeader(start, end)).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
         OkHttpUtil.transferTo(response.body().byteStream(), output);
         response.close();
 
     }
+    
 
     @Override
-    public byte[] downLoadRange(String fileId, Long start, Long len) {
+    public byte[] downLoadRange(String fileId, Long start, Long end) {
         try {
             String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD_RANGE) + "?fileId=" + fileId;
             Response response = OkHttpUtil.request(client, new Request.Builder()
-                    .url(downloadUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+                    .url(downloadUrl).get().addHeader(FdfsFileClientConstant.RANGE_HEADER,OkHttpUtil.rangeHeader(start, end)).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
             byte[] bytes = response.body().bytes();
             response.close();
             return bytes;

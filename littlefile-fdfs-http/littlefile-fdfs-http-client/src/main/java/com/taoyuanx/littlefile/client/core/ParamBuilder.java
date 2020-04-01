@@ -1,7 +1,10 @@
 package com.taoyuanx.littlefile.client.core;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author dushitaoyuan
@@ -34,5 +37,28 @@ public class ParamBuilder {
 
     public Map<String, Object> build() {
         return paramMap;
+    }
+
+    public String buildUrl(String baseUrl) {
+        if (paramMap.isEmpty()) {
+            return baseUrl;
+        }
+        StringBuilder urlBuilder = new StringBuilder("?");
+        paramMap.entrySet().stream().filter(entry -> {
+            Object value = entry.getValue();
+            if (Objects.nonNull(value) && Objects.nonNull(entry.getKey())) {
+                return !(value instanceof InputStream || value instanceof byte[] || value instanceof File);
+            }
+            return false;
+        }).forEach(entry -> {
+            urlBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+        });
+        if (urlBuilder.length() == 1) {
+            return baseUrl;
+        } else {
+            urlBuilder.deleteCharAt(urlBuilder.length() - 1);
+            return baseUrl + urlBuilder.toString();
+        }
+
     }
 }

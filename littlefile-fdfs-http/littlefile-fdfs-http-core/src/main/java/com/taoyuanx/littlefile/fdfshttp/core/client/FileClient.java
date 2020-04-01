@@ -11,10 +11,10 @@ public interface FileClient {
      * 文件上传
      */
     String upload(String localFile);
+
     String upload(byte[] fileBytes, String fileName);
 
     String upload(InputStream fileInput, String fileName);
-
 
 
     /**
@@ -44,10 +44,11 @@ public interface FileClient {
 
     /**
      * 从文件上传
-     *
      */
     String uploadSlave(String localFile, String fileId);
+
     String uploadSlave(byte[] fileBytes, String fileName, String fileId);
+
     String uploadSlave(InputStream fileInput, String fileName, String fileId);
 
     /**
@@ -65,14 +66,17 @@ public interface FileClient {
      * @param destFile
      */
     void downLoad(String fileId, String destFile);
+
     void downLoad(String fileId, OutputStream output);
+
     byte[] downLoad(String fileId);
 
     /**
      * 断点下载
      */
-    void downLoadRange(String fileId, Long start, Long len, OutputStream output);
-    byte[] downLoadRange(String fileId, Long start, Long len);
+    void downLoadRange(String fileId, Long start, Long end, OutputStream output);
+
+    byte[] downLoadRange(String fileId, Long start, Long end);
 
     /**
      * 获取文件信息

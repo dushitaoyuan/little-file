@@ -1,6 +1,7 @@
 package com.taoyuanx.littlefile.client.utils;
 
 import com.alibaba.fastjson.JSON;
+import com.taoyuanx.littlefile.client.core.ByteRange;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
 import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.core.Result;
@@ -11,6 +12,8 @@ import java.io.*;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -150,5 +153,40 @@ public class OkHttpUtil {
             throw new FdfsException("文件服务异常");
         }
     }
+
+    public static String rangeHeader(Long start, Long end) {
+        /**
+         *    1. 500-1000：指定开始和结束的范围，一般用于多线程下载。
+         *    2. 500- ：指定开始区间，一直传递到结束,适用于断点续传、或者在线播放等等。
+         */
+        if (Objects.nonNull(start) && Objects.nonNull(end)) {
+            return String.format("bytes=%s-%s", start,end);
+        }
+        if (Objects.nonNull(start) && Objects.isNull(end)) {
+            return String.format("bytes=%s", start);
+        }
+        return null;
+    }
+
+    public static List<ByteRange> range(Long fileSize, Integer num) {
+        List<ByteRange> partList = new ArrayList<>(num);
+        Long blockSize = fileSize / num;
+        for (int index = 0; index < num; index++) {
+            Long start = index * blockSize;
+            Long end = 0L;
+            if (index == (num - 1)) {
+                /**
+                 * 最后一块
+                 */
+                end = fileSize - 1;
+            } else {
+                end = start + blockSize-1;
+            }
+            partList.add(new ByteRange(start, end));
+        }
+        return partList;
+
+    }
+
 
 }

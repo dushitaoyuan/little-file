@@ -23,13 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Objects;
 
 /**
  * create by lorne on 2017/9/26
@@ -107,7 +105,7 @@ public class FileController {
             fastdfsService.download(fileId, new FileOutputStream(tempFile));
         }
         response.setHeader("Content-type", "application/octet-stream");
-        response.setHeader("Content-Disposition", "attachment;fileName=" +tempFile.getName());
+        response.setHeader("Content-Disposition", "attachment;fileName=" + tempFile.getName());
         transferToOutStream(tempFile, response.getOutputStream());
     }
 
@@ -115,35 +113,48 @@ public class FileController {
     @GetMapping(value = "download/range")
     public void byteRangedownload(
             @ApiParam(value = "下载fileId", required = true) @RequestParam(value = "fileId", required = true) String fileId,
+            @ApiParam(value = "文件大小", required = false) @RequestParam(value = "fileSize", required = false) Long fileSize,
             HttpServletResponse response, HttpServletRequest request) throws Exception {
         String range = request.getHeader("Range");
         if (range.contains(",")) {
             throw new ServiceException("断点下载, header Range: [" + range + "]不支持");
         }
-        Long start, len;
+        Long start, end, len;
         response.setHeader("Accept-Ranges", "bytes");
         String tempRange = range.replaceFirst("bytes=", "");
-        String[] split = range.split("-");
+        String[] split = tempRange.split("-");
         if (ByteRangeUtil.RANGE_FMT_START_END.matcher(tempRange).matches()) {
             start = Long.parseLong(split[0]);
-            len = Long.parseLong(split[1]);
+            end = Long.parseLong(split[1]);
         } else if (ByteRangeUtil.RANGE_FMT_START_TILL_END.matcher(tempRange).matches()) {
+            fileSize = getFileSize(fileSize, fileId);
             start = Long.parseLong(split[0]);
-            len = 0L;
+            end = fileSize - 1;
         } else if (ByteRangeUtil.RANGE_FMT_BYTES_END.matcher(tempRange).matches()) {
-            FileInfo fileInfo = fastdfsService.getFileInfo(fileId);
-            len = Long.parseLong(split[1]);
-            start = fileInfo.getFile_size() - len;
+            fileSize = getFileSize(fileSize, fileId);
+            start = fileSize - Long.parseLong(split[0]);
+            end = fileSize - 1;
         } else {
             throw new ServiceException("断点下载, header Range: [" + range + "]不支持");
         }
-
+        len = end - start + 1;
         response.setHeader("Content-type", "application/octet-stream");
         response.setHeader("Content-Disposition",
                 "attachment;fileName=" + URLEncoder.encode(FilenameUtils.getName(fileId), "UTF-8"));
         //格式 bytes %s-%s/%s
-        response.addHeader(" Content-Range", String.format(ByteRangeUtil.CONTENTRANGE_FMT, start, start + len, len));
+        response.addHeader(" Content-Range", String.format(ByteRangeUtil.CONTENTRANGE_FMT, start, end, fileSize));
+        response.addHeader("Content-Length", "" + len);
+        response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
         fastdfsService.download(fileId, start, len, response.getOutputStream());
+       /*
+
+       debug range
+       ByteArrayOutputStream out=new ByteArrayOutputStream();
+        fastdfsService.download(fileId, start, len, out);
+        byte[] bytes = out.toByteArray();
+        System.out.println("start:"+start+"  end:"+end+"   len:"+len+" size:"+bytes.length);
+
+        response.getOutputStream().write(bytes);*/
         response.getOutputStream().close();
     }
 
@@ -206,6 +217,17 @@ public class FileController {
             outputStream.write(buffer.array(), 0, len);
             buffer.clear();
         }
+    }
+
+    private Long getFileSize(Long fileSize, String fileId) {
+        if (Objects.isNull(fileSize)) {
+            return fileSize;
+        }
+        FileInfo fileInfo = fastdfsService.getFileInfo(fileId);
+        if (Objects.nonNull(fileInfo)) {
+            return fileInfo.getFile_size();
+        }
+        throw new ServiceException("断点下载, 无法计算文件大小");
     }
 
 }

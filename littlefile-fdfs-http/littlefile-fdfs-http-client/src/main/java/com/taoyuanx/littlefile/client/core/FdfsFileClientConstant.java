@@ -13,6 +13,8 @@ public class FdfsFileClientConstant {
     public static final String REQUEST_TOKEN_TAG = "token";
     public static final String REQUEST_TOKEN_KEY = "token";
 
+    public static final String RANGE_HEADER = "Range";
+
     public static enum FdfsApi {
         UPLOAD("upload", "文件上传"),
         UPLOAD_SLAVE("uploadSlave", "从文件上传"),
