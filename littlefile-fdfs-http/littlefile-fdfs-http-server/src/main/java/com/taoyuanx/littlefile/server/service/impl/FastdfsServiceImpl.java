@@ -19,10 +19,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -49,6 +47,60 @@ public class FastdfsServiceImpl implements FastdfsService {
                 throw new ServiceException("upload error.");
             }
             return path;
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("文件上传异常-->", e);
+            throw new ServiceException("文件上传异常");
+        }
+    }
+
+    @Override
+    public String uploadAppendFile( MultipartFile file) throws ServiceException {
+        try {
+            long fileSize = file.getSize();
+            if (fileSize <= 0) {
+                throw new ServiceException("file is null.");
+            }
+            return  fdfsFileUtil.uploadAppendFile(file.getInputStream(), file.getOriginalFilename());
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("文件上传异常-->", e);
+            throw new ServiceException("文件上传异常");
+        }
+    }
+
+    @Override
+    public void appendFile(String fileId, MultipartFile file) throws ServiceException {
+        try {
+            long fileSize = file.getSize();
+            if (fileSize <= 0) {
+                throw new ServiceException("file is null.");
+            }
+            if (StringUtils.isEmpty(fileId)) {
+                throw new ServiceException("fileId is null.");
+            }
+            fdfsFileUtil.append(file.getInputStream(), fileId);
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("文件上传异常-->", e);
+            throw new ServiceException("文件上传异常");
+        }
+    }
+
+    @Override
+    public void modifyFile(MultipartFile file, Long offset, String fileId) {
+        try {
+            long fileSize = file.getSize();
+            if (fileSize <= 0) {
+                throw new ServiceException("file is null.");
+            }
+            if (Objects.isNull(offset)) {
+                throw new ServiceException("fileId is null.");
+            }
+            fdfsFileUtil.modifyFile(file.getInputStream(), offset,fileId);
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
@@ -193,23 +245,21 @@ public class FastdfsServiceImpl implements FastdfsService {
 
 
     private List<ImageWH> loadCutSize(String cutSize) throws ServiceException {
-        List<ImageWH> whs = null;
-        if (!StringUtils.isEmpty(cutSize)) {
-            try {
-                List<String> sizes = Arrays.asList(cutSize.split(","));
-                whs = new ArrayList<>();
-                for (String size : sizes) {
-                    String vals[] = size.split("x");
-                    int w = Integer.parseInt(vals[0]);
-                    int h = Integer.parseInt(vals[1]);
-                    whs.add(new ImageWH(w, h));
+        if (StringUtils.hasText(cutSize)) {
+            return Arrays.stream(cutSize.split(",")).map(singleSize -> {
+                try {
+                    String size[] = singleSize.split("x");
+                    int width = Integer.parseInt(size[0]);
+                    int height = Integer.parseInt(size[1]);
+                    return new ImageWH(width, height);
+                } catch (Exception e) {
+                    log.warn("{} cutSize is error ", singleSize);
                 }
-
-            } catch (Exception e) {
-                throw new ServiceException("cutSize is error");
-            }
+                return null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
         }
-        return whs;
+        return Collections.EMPTY_LIST;
+
     }
 
     @Override

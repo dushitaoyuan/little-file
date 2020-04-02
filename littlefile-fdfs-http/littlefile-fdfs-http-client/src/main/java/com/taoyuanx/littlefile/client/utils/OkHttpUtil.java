@@ -3,6 +3,7 @@ package com.taoyuanx.littlefile.client.utils;
 import com.alibaba.fastjson.JSON;
 import com.taoyuanx.littlefile.client.core.ByteRange;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
+import com.taoyuanx.littlefile.client.core.FileChunk;
 import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.core.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,9 @@ import java.io.*;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +44,8 @@ public class OkHttpUtil {
             if (paramsMap != null && !paramsMap.isEmpty()) {
                 for (String key : paramsMap.keySet()) {
                     Object value = paramsMap.get(key);
-                    if (paramsMap.containsKey(FdfsFileClientConstant.FILE_NAME_KEY)) {
-                        return;
+                    if (Objects.isNull(value)||key.equals(FdfsFileClientConstant.FILE_NAME_KEY)) {
+                        continue;
                     }
                     /**
                      * 文件参数
@@ -74,7 +78,7 @@ public class OkHttpUtil {
 
             }
         } catch (Exception e) {
-            throw new FdfsException("参数转换异常");
+            throw new FdfsException("参数转换异常", e);
         }
     }
 
@@ -100,8 +104,7 @@ public class OkHttpUtil {
 
         Response response = null, temp;
         try {
-            response = client.newCall(request).execute();
-            temp = response;
+            temp = response = client.newCall(request).execute();
             if (response.isSuccessful()) {
                 if (type == null) {
                     return null;
@@ -136,10 +139,30 @@ public class OkHttpUtil {
             int len = 0;
             while ((len = input.read(buffer)) != -1) {
                 output.write(buffer, 0, len);
-                output.flush();
             }
-            output.close();
         } catch (Exception e) {
+            throw new FdfsException("文件服务异常");
+        }
+    }
+
+    public static void transferTo(FileChannel input, Long start, Long end, OutputStream output) {
+        try {
+            ByteBuffer buffer = ByteBuffer.allocate(FdfsFileClientConstant.BUFFER_SIZE);
+            long len = 0;
+            Long count = 0L;
+            input.position(start);
+            while ((len = input.read(buffer)) != -1) {
+                if (count + len > end) {
+                    len = Long.valueOf(end - count).intValue();
+                }
+                buffer.flip();
+                output.write(buffer.array(), 0, Long.valueOf(len).intValue());
+                buffer.clear();
+                count += len;
+            }
+
+        } catch (Exception e) {
+            log.error("文件服务异常", e);
             throw new FdfsException("文件服务异常");
         }
     }
@@ -160,13 +183,15 @@ public class OkHttpUtil {
          *    2. 500- ：指定开始区间，一直传递到结束,适用于断点续传、或者在线播放等等。
          */
         if (Objects.nonNull(start) && Objects.nonNull(end)) {
-            return String.format("bytes=%s-%s", start,end);
+            return String.format("bytes=%s-%s", start, end);
         }
         if (Objects.nonNull(start) && Objects.isNull(end)) {
             return String.format("bytes=%s", start);
         }
         return null;
     }
+
+    public static final Long MIN_CHUNK_SIZE = 1L << 20;
 
     public static List<ByteRange> range(Long fileSize, Integer num) {
         List<ByteRange> partList = new ArrayList<>(num);
@@ -180,9 +205,30 @@ public class OkHttpUtil {
                  */
                 end = fileSize - 1;
             } else {
-                end = start + blockSize-1;
+                end = start + blockSize - 1;
             }
             partList.add(new ByteRange(start, end));
+        }
+        return partList;
+
+    }
+
+    public static List<FileChunk> chunkSize(Long fileSize, Long chunkSize) {
+        List<FileChunk> partList = new ArrayList<>();
+        long start = 0, remain = fileSize, tempChunkSize = chunkSize + MIN_CHUNK_SIZE;
+        while (remain > 0) {
+            if (remain < chunkSize) {
+                partList.add(new FileChunk(start, fileSize));
+                return partList;
+            } else if (remain < tempChunkSize) {
+                partList.add(new FileChunk(start, start + tempChunkSize + 1));
+                remain -= tempChunkSize;
+                start += tempChunkSize;
+            } else {
+                partList.add(new FileChunk(start, start + chunkSize + 1));
+                remain -= chunkSize;
+                start += chunkSize;
+            }
         }
         return partList;
 

@@ -16,7 +16,13 @@ public interface FastdfsService {
 	 * @throws ServiceException
 	 */
 	String uploadFile(MultipartFile file) throws ServiceException;
-    /**
+
+	String uploadAppendFile(MultipartFile file) throws ServiceException;
+
+	void appendFile(String fileId, MultipartFile file) throws ServiceException;
+	void modifyFile(MultipartFile file, Long offset, String fileId);
+
+	/**
      * @param masterFileId 主文件地址
      * @param file  文件
      * @return
@@ -24,7 +30,7 @@ public interface FastdfsService {
      */
     String uploadSlaveFile(String masterFileId, MultipartFile file) throws ServiceException;
     /**
-     * 
+     *
      * @param masterFileId
      * @param prefixName 指定文件名称
      * @param file
@@ -32,8 +38,8 @@ public interface FastdfsService {
      * @throws ServiceException
      */
     String uploadSlaveFile(String masterFileId, String prefixName, MultipartFile file) throws ServiceException;
-    
-  
+
+
     /**
      * @param cutSize 生成缩略图尺寸 
      * @param file 文件
@@ -73,10 +79,6 @@ public interface FastdfsService {
 	 * @throws ServiceException
 	 */
 	FileInfo getFileInfo(String fileId) throws ServiceException;
-	
-	
-	
-	
 
 
 }

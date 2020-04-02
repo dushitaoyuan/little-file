@@ -19,6 +19,7 @@ public class FdfsFileClientConstant {
         UPLOAD("upload", "文件上传"),
         UPLOAD_SLAVE("uploadSlave", "从文件上传"),
         UPLOAD_IMG("image/upload", "图片上传可生成缩略图"),
+        UPLOAD_RANGE("upload/range", "文件断点上传"),
         DOWNLOAD("download", "文件下载"),
         DOWNLOAD_RANGE("download/range", "文件断点下载"),
         REMOVE("removeFile", "文件删除"),

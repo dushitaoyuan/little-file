@@ -58,7 +58,7 @@ public class FileController {
     public Result uploadSlaveFile(
             @ApiParam(value = "从文件流,name=file", required = true) @RequestParam("file") MultipartFile file,
 
-            @ApiParam(value = "主文件名称", required = false) @RequestParam("masterFileId") String masterFileId,
+            @ApiParam(value = "主文件id", required = false) @RequestParam("masterFileId") String masterFileId,
             @ApiParam(value = "前缀名称", required = false) @RequestParam(value = "prefixName", required = false) String prefixName)
             throws ServiceException {
         if (StringUtils.isEmpty(prefixName)) {
@@ -67,9 +67,27 @@ public class FileController {
         return ResultBuilder.successResult(fastdfsService.uploadSlaveFile(masterFileId, prefixName, file));
     }
 
+    @ApiOperation(value = "断点上传文件", notes = "上传文件")
+    @PostMapping(value = "/upload/range")
+    public Result uploadRangeFile(
+            @ApiParam(value = "文件流,name=file", required = true) @RequestParam("file") MultipartFile file,
+            @ApiParam(value = "文件fileId", required = false) @RequestParam(value = "fileId", required = false) String fileId,
+            @ApiParam(value = "文件偏移量", required = false) @RequestParam(value = "offset", required = false) Long offset)
+            throws ServiceException {
+        if (StringUtils.isEmpty(fileId)) {
+            return ResultBuilder.success(fastdfsService.uploadAppendFile(file));
+        } else if (Objects.nonNull(offset)) {
+            fastdfsService.modifyFile(file, offset, fileId);
+        } else {
+            fastdfsService.appendFile(fileId, file);
+
+        }
+        return ResultBuilder.success();
+    }
+
     @ApiOperation(value = "删除文件", notes = "删除文件")
     @DeleteMapping(value = "/removeFile")
-    public Result removeFile(@ApiParam(value = "文件名称", required = true) @RequestParam("fileId") String fileId)
+    public Result removeFile(@ApiParam(value = "文件fileId", required = true) @RequestParam("fileId") String fileId)
             throws ServiceException {
         fastdfsService.removeFile(fileId);
         return ResultBuilder.success();

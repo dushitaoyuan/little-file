@@ -1,17 +1,6 @@
 package com.taoyuanx.littlefile.server.utils;
 
-import com.taoyuanx.littlefile.server.fdfs.FdfsUtil;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.net.URLEncoder;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * @author dushitaoyuan

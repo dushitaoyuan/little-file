@@ -67,6 +67,35 @@ public class FileClientImpl implements FileClient {
     }
 
     @Override
+    public void appendFile(InputStream fileInput, String fileName, Long start, String fileId) {
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileInput)
+                .addParam("fileId", fileId)
+                .addParam(FdfsFileClientConstant.FILE_NAME_KEY, fileName)
+                .build();
+        OkHttpUtil.addParams(builder, paramMap);
+        OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_RANGE))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), null);
+
+    }
+
+    @Override
+    public String uploadAppendFile(InputStream fileInput, String fileName) {
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileInput)
+                .addParam(FdfsFileClientConstant.FILE_NAME_KEY, fileName)
+                .build();
+        OkHttpUtil.addParams(builder, paramMap);
+        return OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_RANGE))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
+
+    }
+
+    @Override
     public String uploadSlave(String localFile, String masterFileId) {
         MultipartBody.Builder builder = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM);
@@ -161,19 +190,19 @@ public class FileClientImpl implements FileClient {
     public void downLoadRange(String fileId, Long start, Long end, OutputStream output) {
         String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD_RANGE) + "?fileId=" + fileId;
         Response response = OkHttpUtil.request(client, new Request.Builder()
-                .url(downloadUrl).get().addHeader(FdfsFileClientConstant.RANGE_HEADER,OkHttpUtil.rangeHeader(start, end)).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+                .url(downloadUrl).get().addHeader(FdfsFileClientConstant.RANGE_HEADER, OkHttpUtil.rangeHeader(start, end)).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
         OkHttpUtil.transferTo(response.body().byteStream(), output);
         response.close();
 
     }
-    
+
 
     @Override
     public byte[] downLoadRange(String fileId, Long start, Long end) {
         try {
             String downloadUrl = apiMap.get(FdfsFileClientConstant.FdfsApi.DOWNLOAD_RANGE) + "?fileId=" + fileId;
             Response response = OkHttpUtil.request(client, new Request.Builder()
-                    .url(downloadUrl).get().addHeader(FdfsFileClientConstant.RANGE_HEADER,OkHttpUtil.rangeHeader(start, end)).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
+                    .url(downloadUrl).get().addHeader(FdfsFileClientConstant.RANGE_HEADER, OkHttpUtil.rangeHeader(start, end)).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), Response.class);
             byte[] bytes = response.body().bytes();
             response.close();
             return bytes;

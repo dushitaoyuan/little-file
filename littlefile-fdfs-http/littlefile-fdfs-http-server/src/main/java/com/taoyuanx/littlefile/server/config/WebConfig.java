@@ -48,7 +48,7 @@ public class WebConfig implements WebMvcConfigurer {
         ModelAndView modelAndView = new ModelAndView();
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         Integer errorCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-        String errorMsg = "系统异常";
+        String errorMsg = "系统异常:" + e.getMessage();
         if (e instanceof ServiceException) {
             errorMsg = e.getMessage();
             ServiceException serviceException = ((ServiceException) e);

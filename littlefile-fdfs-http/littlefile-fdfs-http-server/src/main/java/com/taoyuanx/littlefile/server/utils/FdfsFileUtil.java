@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.csource.common.NameValuePair;
 import org.csource.fastdfs.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
@@ -44,9 +45,8 @@ public class FdfsFileUtil {
      * @throws Exception
      */
     public String upload(byte[] data, String fileName) throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
-        return getClient().upload_file1(data, fileExtName, metaList);
+        return getClient().upload_file1(data, fileExtName, null);
     }
 
     /**
@@ -58,9 +58,8 @@ public class FdfsFileUtil {
      * @throws Exception
      */
     public String upload(String group, byte[] data, String fileName) throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
-        return getClient().upload_file1(group, data, fileExtName, metaList);
+        return getClient().upload_file1(group, data, fileExtName, null);
     }
 
     /**
@@ -72,9 +71,47 @@ public class FdfsFileUtil {
      * @throws Exception
      */
     public String upload(InputStream input, String fileName) throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
-        return getClient().upload_file1(streamToArray(input), fileExtName, metaList);
+        return getClient().upload_file1(FdfsHelperUtil.streamToArray(input), fileExtName, null);
+    }
+
+    /**
+     * 断点续传文件
+     *
+     * @param input
+     * @return
+     * @throws Exception
+     */
+    public String uploadAppendFile(InputStream input, String fileName) throws Exception {
+        String fileExtName = FilenameUtils.getExtension(fileName);
+        return getClient().upload_appender_file1(FdfsHelperUtil.streamToArray(input), fileExtName, null);
+    }
+
+    /**
+     * 断点续传文件
+     *
+     * @param input
+     * @return
+     * @throws Exception
+     */
+    public void append(InputStream input, String fileId) throws Exception {
+        getClient().append_file1(fileId, FdfsHelperUtil.streamToArray(input));
+    }
+
+    /**
+     * 断点续传文件
+     *
+     * @param data
+     * @return
+     * @throws Exception
+     */
+    public void append(byte[] data, String fileId) throws Exception {
+        getClient().append_file1(fileId, data);
+    }
+
+    public void modifyFile(InputStream inputStream, Long offset, String fileId) throws Exception {
+        getClient().modify_file1(fileId, offset, FdfsHelperUtil.streamToArray(inputStream));
+
     }
 
     /**
@@ -86,19 +123,17 @@ public class FdfsFileUtil {
      * @throws Exception
      */
     public String upload(String group, InputStream input, String fileName) throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
-        return getClient().upload_file1(group, streamToArray(input), fileExtName, metaList);
+        return getClient().upload_file1(group, FdfsHelperUtil.streamToArray(input), fileExtName, null);
     }
 
     /**
      * 上传从文件
      */
     public String uploadSlave(String masterFileId, InputStream input, String fileName) throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
         String filePrefixName = FilenameUtils.getPrefix(fileName);
-        return getClient().upload_file1(masterFileId, filePrefixName, streamToArray(input), fileExtName, metaList);
+        return getClient().upload_file1(masterFileId, filePrefixName, FdfsHelperUtil.streamToArray(input), fileExtName, null);
     }
 
     /**
@@ -106,9 +141,8 @@ public class FdfsFileUtil {
      */
     public String uploadSlave(String masterFileId, InputStream input, String filePrefixName, String fileName)
             throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
-        return getClient().upload_file1(masterFileId, filePrefixName, streamToArray(input), fileExtName, metaList);
+        return getClient().upload_file1(masterFileId, filePrefixName, FdfsHelperUtil.streamToArray(input), fileExtName, null);
     }
 
     /**
@@ -116,9 +150,8 @@ public class FdfsFileUtil {
      */
     public String uploadSlave(String masterFileId, byte[] input, String filePrefixName, String fileName)
             throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
-        return getClient().upload_file1(masterFileId, filePrefixName, input, fileExtName, metaList);
+        return getClient().upload_file1(masterFileId, filePrefixName, input, fileExtName, null);
     }
 
     /**
@@ -129,24 +162,21 @@ public class FdfsFileUtil {
         File localMasterFile = new File(localMaster);
         File localSlaveFile = null;
         String fileName = localMasterFile.getName();
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
         MasterAndSlave ms = new MasterAndSlave(localSlave.length);
         // 上传主
-        String master = client.upload_file1(fileName, fileExtName, metaList);
+        String master = client.upload_file1(fileName, fileExtName, null);
         ms.setMaster(master);
         // 上传从
         for (String s : localSlave) {
             localSlaveFile = new File(s);
             fileName = localSlaveFile.getName();
-            metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
             fileExtName = FilenameUtils.getExtension(fileName);
             String filePrefixName = FilenameUtils.getExtension(fileName);
             try {
-                ms.addSlave(client.upload_file1(master, filePrefixName, s, fileExtName, metaList));
-                ;
+                ms.addSlave(client.upload_file1(master, filePrefixName, s, fileExtName, null));
             } catch (Exception e) {
-                System.err.println(s + "从文件上传失败");
+                log.error("从文件上传失败", e);
             }
         }
 
@@ -160,26 +190,25 @@ public class FdfsFileUtil {
                                                List<String> slaveNames, InputStream... slaveInputs) throws Exception {
         StorageClient1 client = getClient();
         String fileName = masterName;
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
         String fileExtName = FilenameUtils.getExtension(fileName);
-        MasterAndSlave ms = new MasterAndSlave(slaveNames.size());
+
         // 上传主
         String master = null;
         if (StringUtils.isEmpty(group)) {
-            master = client.upload_file1(streamToArray(masterInput), fileExtName, metaList);
+            master = client.upload_file1(FdfsHelperUtil.streamToArray(masterInput), fileExtName, null);
         } else {
-            master = client.upload_file1(group, streamToArray(masterInput), fileExtName, metaList);
+            master = client.upload_file1(group, FdfsHelperUtil.streamToArray(masterInput), fileExtName, null);
         }
+        MasterAndSlave ms = new MasterAndSlave(slaveNames.size());
         ms.setMaster(master);
         // 上传从
         for (int i = 0, len = slaveNames.size(); i < len; i++) {
             fileName = slaveNames.get(i);
-            metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
             fileExtName = FilenameUtils.getExtension(fileName);
             String filePrefixName = FilenameUtils.getPrefix(fileName);
             try {
-                ms.addSlave(client.upload_file1(master, filePrefixName, streamToArray(slaveInputs[i]), fileExtName,
-                        metaList));
+                ms.addSlave(client.upload_file1(master, filePrefixName, FdfsHelperUtil.streamToArray(slaveInputs[i]), fileExtName,
+                        null));
             } catch (Exception e) {
                 log.warn(fileName + "从文件上传失败", e);
             }
@@ -191,17 +220,14 @@ public class FdfsFileUtil {
      * 上传本地文件
      */
     public String upload(String file, String fileName) throws Exception {
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
-        return getClient().upload_file1(file, null, metaList);
+        return getClient().upload_file1(file, FdfsHelperUtil.getExtension(fileName), null);
     }
 
     /**
      * 上传本地文件
      */
     public String upload(String file) throws Exception {
-        String fileName = new File(file).getName();
-        NameValuePair[] metaList = new NameValuePair[]{new NameValuePair("fileName", fileName)};
-        return getClient().upload_file1(file, null, metaList);
+        return getClient().upload_file1(file, null, null);
     }
 
     /**
@@ -257,16 +283,7 @@ public class FdfsFileUtil {
      * @return
      * @throws IOException
      */
-    public byte[] streamToArray(InputStream input) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream(input.available());
-        byte[] buf = new byte[BUFFER_SIZE];
-        int len = 0;
-        while ((len = input.read(buf)) != -1) {
-            out.write(buf, 0, len);
-        }
-        input.close();
-        return out.toByteArray();
-    }
+
 
     /**
      * 获取文件信息

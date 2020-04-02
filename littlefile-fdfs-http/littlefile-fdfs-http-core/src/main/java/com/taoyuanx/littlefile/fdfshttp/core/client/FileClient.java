@@ -16,6 +16,12 @@ public interface FileClient {
 
     String upload(InputStream fileInput, String fileName);
 
+    /**
+     * 断点上传
+     */
+    String uploadAppendFile(InputStream fileInput, String fileName);
+
+    void appendFile(InputStream fileInput, String fileName, Long start, String fileId);
 
     /**
      * 上传本地图片
@@ -41,6 +47,7 @@ public interface FileClient {
      * @return
      */
     MasterAndSlave uploadImage(InputStream fileInput, String fileName, String cutSize);
+
 
     /**
      * 从文件上传
