@@ -67,7 +67,7 @@ public class FileClientImpl implements FileClient {
     }
 
     @Override
-    public void appendFile(InputStream fileInput, String fileName, Long start, String fileId) {
+    public void appendFile(InputStream fileInput, String fileName, String fileId) {
         MultipartBody.Builder builder = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM);
         Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileInput)
@@ -78,7 +78,20 @@ public class FileClientImpl implements FileClient {
         OkHttpUtil.request(client,
                 new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_RANGE))
                         .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), null);
-
+    }
+    @Override
+    public void coverAppendFile(InputStream fileInput, String fileName, Long start, String fileId) {
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        Map<String, Object> paramMap = ParamBuilder.newBuilder().addParam(FdfsFileClientConstant.FILE_KEY, fileInput)
+                .addParam("fileId", fileId)
+                .addParam("offset", start)
+                .addParam(FdfsFileClientConstant.FILE_NAME_KEY, fileName)
+                .build();
+        OkHttpUtil.addParams(builder, paramMap);
+        OkHttpUtil.request(client,
+                new Request.Builder().url(apiMap.get(FdfsFileClientConstant.FdfsApi.UPLOAD_RANGE))
+                        .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), null);
     }
 
     @Override
@@ -94,6 +107,7 @@ public class FileClientImpl implements FileClient {
                         .post(builder.build()).tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), String.class);
 
     }
+
 
     @Override
     public String uploadSlave(String localFile, String masterFileId) {

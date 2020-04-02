@@ -39,6 +39,7 @@ public class ClientConfig {
      */
     private String token;
 
+
     public ClientConfig(String configPath) {
         try {
             Properties config = new Properties();

@@ -13,16 +13,17 @@ import java.io.InputStream;
 @Getter
 @ToString
 public class FileChunk {
-    private Long strat;
+    private Long start;
     private Long end;
+    private Long len;
     @Setter
     private InputStream chunkStream;
-    public FileChunk(Long strat, Long end) {
-        this.strat = strat;
+
+    public FileChunk(Long start, Long end) {
+        this.start = start;
         this.end = end;
+        this.len = end - start + 1;
     }
-
-
 
 
 }
