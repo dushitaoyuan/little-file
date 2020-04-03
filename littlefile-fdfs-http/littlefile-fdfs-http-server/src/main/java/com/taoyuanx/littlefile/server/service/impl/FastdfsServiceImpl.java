@@ -9,12 +9,14 @@ import com.taoyuanx.littlefile.server.service.FastdfsService;
 import com.taoyuanx.littlefile.server.service.FileValidateService;
 import com.taoyuanx.littlefile.server.utils.CodeUtil;
 import com.taoyuanx.littlefile.server.utils.FdfsFileUtil;
+import com.taoyuanx.littlefile.server.utils.FdfsHelperUtil;
 import com.taoyuanx.littlefile.server.utils.FilenameUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,7 +44,7 @@ public class FastdfsServiceImpl implements FastdfsService {
             if (fileSize <= 0) {
                 throw new ServiceException("file is null.");
             }
-            String path = fdfsFileUtil.upload(file.getInputStream(), file.getOriginalFilename());
+            String path = fdfsFileUtil.upload(null, file.getInputStream(), file.getOriginalFilename());
             if (path == null) {
                 throw new ServiceException("upload error.");
             }
@@ -56,13 +58,13 @@ public class FastdfsServiceImpl implements FastdfsService {
     }
 
     @Override
-    public String uploadAppendFile( MultipartFile file) throws ServiceException {
+    public String uploadAppendFile(MultipartFile file) throws ServiceException {
         try {
             long fileSize = file.getSize();
             if (fileSize <= 0) {
                 throw new ServiceException("file is null.");
             }
-            return  fdfsFileUtil.uploadAppendFile(file.getInputStream(), file.getOriginalFilename());
+            return fdfsFileUtil.uploadAppendFile(null, file.getInputStream(), file.getOriginalFilename());
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
@@ -100,7 +102,7 @@ public class FastdfsServiceImpl implements FastdfsService {
             if (Objects.isNull(offset)) {
                 throw new ServiceException("fileId is null.");
             }
-            fdfsFileUtil.modifyFile(file.getInputStream(), offset,fileId);
+            fdfsFileUtil.modifyFile(file.getInputStream(), offset, fileId);
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
@@ -120,7 +122,7 @@ public class FastdfsServiceImpl implements FastdfsService {
             String fileName = file.getOriginalFilename();
             //随机生成从文件前缀,防止重名异常
             String filePrefixName = FilenameUtils.getPrefixRandom(fileName);
-            String path = fdfsFileUtil.uploadSlave(masterFileId, file.getBytes(), filePrefixName, fileName);
+            String path = fdfsFileUtil.uploadSlave(masterFileId, file.getInputStream(), filePrefixName, fileName);
             if (path == null) {
                 throw new ServiceException("slave upload error.");
             }
@@ -142,7 +144,7 @@ public class FastdfsServiceImpl implements FastdfsService {
                 throw new ServiceException("file is null.");
             }
             prefixName = prefixName + "_" + FilenameUtils.generateShortUuid();
-            String path = fdfsFileUtil.uploadSlave(masterFilename, file.getBytes(), prefixName, file.getOriginalFilename());
+            String path = fdfsFileUtil.uploadSlave(masterFilename, file.getInputStream(), prefixName, file.getOriginalFilename());
             if (path == null) {
                 throw new ServiceException("slave upload error.");
             }
@@ -168,26 +170,34 @@ public class FastdfsServiceImpl implements FastdfsService {
                 throw new ServiceException("cutSize is null.");
             }
             String ext = FilenameUtils.getExtension(file.getOriginalFilename());
-            //临时落盘,防止文件过大
             File sourceFile = new File(fileProperties.getFileCacheDir(), CodeUtil.getUUID());
             file.transferTo(sourceFile);
-            //生成缩略图
-            List<ImageWH> whs = loadCutSize(cutSize);
-            int len = whs.size();
-            InputStream[] slaveInputs = new InputStream[len];
-            List<String> slaveNames = new ArrayList<>(len);
-            for (int i = 0; i < len; i++) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                ImageWH wh = whs.get(i);
-                Thumbnails.of(sourceFile).size(wh.getW(), wh.getH()).toOutputStream(out);
-                slaveInputs[i] = new ByteArrayInputStream(out.toByteArray());
-                slaveNames.add(String.format("%dx%d", wh.getW(), wh.getH()) + "." + ext);
-            }
+            /**
+             * 生成缩略图
+             */
+            List<ImageWH> smallImageList = loadCutSize(cutSize);
+            List<String> slaveNameList = new ArrayList<>();
+            List<File> slaveFileList = new ArrayList<>();
+            List<InputStream> slaveInputList = new ArrayList<>();
+            smallImageList.stream().forEach(imageWH -> {
+                try {
+                    String smallImageName = String.format("%dx%d", imageWH.getW(), imageWH.getH()) + "." + ext;
+                    slaveNameList.add(smallImageName);
+                    File slaveFile = new File(FilenameUtils.getFileNameRandom(smallImageName));
+                    Thumbnails.of(sourceFile).size(imageWH.getW(), imageWH.getH()).toOutputStream(new FileOutputStream(slaveFile));
+                    slaveFileList.add(slaveFile);
+                    slaveInputList.add(new FileInputStream(slaveFile));
+                } catch (Exception e) {
+                    log.warn("从文件上传异常", e);
+                    throw new ServiceException("图片缩略生成异常");
+                }
+            });
             MasterAndSlave uploadMasterAndSlave = fdfsFileUtil.uploadMasterAndSlave(null, new FileInputStream(sourceFile),
                     file.getOriginalFilename(),
-                    slaveNames, slaveInputs);
+                    slaveNameList, slaveInputList);
             //删除临时
             FileUtils.deleteQuietly(sourceFile);
+            slaveFileList.forEach(FileUtils::deleteQuietly);
             return uploadMasterAndSlave;
         } catch (ServiceException e) {
             throw e;
@@ -243,25 +253,6 @@ public class FastdfsServiceImpl implements FastdfsService {
         }
     }
 
-
-    private List<ImageWH> loadCutSize(String cutSize) throws ServiceException {
-        if (StringUtils.hasText(cutSize)) {
-            return Arrays.stream(cutSize.split(",")).map(singleSize -> {
-                try {
-                    String size[] = singleSize.split("x");
-                    int width = Integer.parseInt(size[0]);
-                    int height = Integer.parseInt(size[1]);
-                    return new ImageWH(width, height);
-                } catch (Exception e) {
-                    log.warn("{} cutSize is error ", singleSize);
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-        }
-        return Collections.EMPTY_LIST;
-
-    }
-
     @Override
     public FileInfo getFileInfo(String fileId) throws ServiceException {
 
@@ -285,6 +276,25 @@ public class FastdfsServiceImpl implements FastdfsService {
             throw new ServiceException("文件信息获取异常");
         }
     }
+
+    private List<ImageWH> loadCutSize(String cutSize) throws ServiceException {
+        if (StringUtils.hasText(cutSize)) {
+            return Arrays.stream(cutSize.split(",")).map(singleSize -> {
+                try {
+                    String size[] = singleSize.split("x");
+                    int width = Integer.parseInt(size[0]);
+                    int height = Integer.parseInt(size[1]);
+                    return new ImageWH(width, height);
+                } catch (Exception e) {
+                    log.warn("{} cutSize is error ", singleSize);
+                }
+                return null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+        }
+        return Collections.EMPTY_LIST;
+
+    }
+
 
 
 }

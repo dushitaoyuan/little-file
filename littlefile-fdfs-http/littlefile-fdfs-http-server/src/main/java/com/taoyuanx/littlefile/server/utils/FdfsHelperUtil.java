@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FilenameUtils;
 import org.csource.common.NameValuePair;
 import com.taoyuanx.littlefile.server.utils.Utils;
 
@@ -19,12 +20,7 @@ public class FdfsHelperUtil {
      * @return
      */
     public static String getFileName(String file) {
-        int index = file.lastIndexOf("/") + 1;
-        if (index > -1) {
-            return file.substring(index);
-        } else {
-            return new File(file).getName();
-        }
+        return FilenameUtils.getName(file);
     }
 
     /**

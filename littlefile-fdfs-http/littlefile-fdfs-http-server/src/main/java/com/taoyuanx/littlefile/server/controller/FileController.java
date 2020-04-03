@@ -80,7 +80,6 @@ public class FileController {
             fastdfsService.modifyFile(file, offset, fileId);
         } else {
             fastdfsService.appendFile(fileId, file);
-
         }
         return ResultBuilder.success();
     }
