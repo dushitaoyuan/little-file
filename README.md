@@ -4,6 +4,24 @@
 小型文件管理http服务,为原有的文件系统提供可靠的http服务目前支持:fatdfs,ftp,sftp,local(本地文件)图片在线预览,支持gzip压缩简单封装了,fastdfs,sftp,ftp基本操作(上传,下载)
 简单安全控制 hmac
 可在线预览pdf,图片等文件,后续可支持文件缩放,剪裁等功能
+
+1. littlefile-core  
+基本实现 fdfs,sftp,ftp,aliyunoss 基础功能 (上传,下载,删除,断点下载,实时图片预览)
+2. xxx-sample   
+littlefile-core 的文件服务访问(下载,访问,对接已有文件系统)功能例子
+3. littlefile-combine  
+统一文件服务接口,重新划分文件协议,结合mysql实现文件存储
+4. littlefile-fdfs-http   
+ - fastdfs http 服务
+ - littlefile-fdfs-http-server 服务端
+ - littlefile-fdfs-http-client client端
+ - 基于 fastdfs 5.11 (也可升级最新6.x版,基本无需改动)
+ 理论上 依托fastdfs  封装http,可支持任何客户端
+ 
+5. fastdfs   
+fastdfs 最全文档解析  
+
+ 
 ## 软件架构
 客户端文件请求(携带参数:文件服务器路径,token,访问类型(查看或者下载))->->web服务,拉取远端文件到Web服务器所在本地磁盘->返回文件流信息(可选gzip压缩)
 

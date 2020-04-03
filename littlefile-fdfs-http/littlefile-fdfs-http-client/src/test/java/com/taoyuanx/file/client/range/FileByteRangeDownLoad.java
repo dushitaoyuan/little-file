@@ -1,4 +1,4 @@
-package com.taoyuanx.file.client;
+package com.taoyuanx.file.client.range;
 
 import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
@@ -26,9 +26,8 @@ public class FileByteRangeDownLoad {
     private FileClient client;
     private Long fileSize;
 
-    private Integer downLoadThreadNum = 3;
     private OutputStream outputStream;
-
+    private static final Long DEFAULT_CHUNK_SIZE = 4L << 20;
     private static ThreadPoolExecutor poolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(6);
 
     public FileByteRangeDownLoad(FileClient client, String fileId, OutputStream outputStream) {
@@ -46,16 +45,16 @@ public class FileByteRangeDownLoad {
     public void downLoad() throws Exception {
 
         long totalSize = getFileSize();
-        if (totalSize > 4 * 1024 * 1024) {
+        if (totalSize > 2 * 1024 * 1024) {
             LongAdder count = new LongAdder();
-            List<Future<byte[]>> downLoadList = OkHttpUtil.range(totalSize, downLoadThreadNum).stream().map(byteRange -> {
+            List<Future<byte[]>> downLoadList = OkHttpUtil.chunkSize(totalSize, DEFAULT_CHUNK_SIZE).stream().map(chunk -> {
                 return poolExecutor.submit(new Callable<byte[]>() {
                     @Override
                     public byte[] call() throws Exception {
-                        Long len = byteRange.getEnd() - byteRange.getStrat() + 1;
+                        Long len = chunk.getLen();
                         count.add(len);
-                        System.out.println("start:" + byteRange.getStrat() + "\t end:" + byteRange.getEnd() + "\t" + len);
-                        return client.downLoadRange(fileId, byteRange.getStrat(), byteRange.getEnd());
+                        System.out.println("start:" + chunk.getStart() + "\t end:" + chunk.getEnd() + "\t" + len);
+                        return client.downLoadRange(fileId, chunk.getStart(), chunk.getEnd());
 
                     }
                 });
@@ -63,7 +62,7 @@ public class FileByteRangeDownLoad {
             for (Future<byte[]> bytes : downLoadList) {
                 outputStream.write(bytes.get());
             }
-            System.out.println("下载完成,文件大小:" + totalSize+"下载总大小:"+count.longValue());
+            System.out.println("下载完成,文件大小:" + totalSize + "下载总大小:" + count.longValue());
         } else {
             Long start = System.currentTimeMillis();
             client.downLoad(fileId, outputStream);

@@ -1,16 +1,14 @@
 package com.taoyuanx.file.client;
 
 
-import com.taoyuanx.littlefile.client.core.ClientConfig;
+import com.taoyuanx.file.client.range.FileByteRangeDownLoad;
+import com.taoyuanx.file.client.range.FileByteRangeUpload;
 import com.taoyuanx.littlefile.client.core.FastFileClientFactory;
 import com.taoyuanx.littlefile.client.impl.DefaultSingletonFastFileClientFactory;
 import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
-import com.taoyuanx.littlefile.fdfshttp.core.dto.FileInfo;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -64,11 +62,7 @@ public class TestFileClient {
      */
     @Test
     public void testDownLoadRannge() throws Exception {
-        String uploadFile = "d://test.exe";
-        String upload = client.upload(uploadFile);
-        String fileId = upload;
-        System.out.println(fileId);
-        // String fileId="group1/M00/00/00/wKgeyF6EoVGAHKgoAMabiRD7QQE4425.7z";
+        String fileId = "group1/M00/00/01/wKgeyF6GCMKEPEmzAAAAAFoHlhw743.exe";
         FileByteRangeDownLoad fileByteRangeDownLoad = new FileByteRangeDownLoad(client, fileId, new FileOutputStream("d://down.exe"));
         fileByteRangeDownLoad.downLoad();
     }
@@ -76,9 +70,9 @@ public class TestFileClient {
     @Test
     public void testUploadRannge() throws Exception {
         String uploadFile = "d://test.exe";
-        RandomAccessFile randomAccessFile=new RandomAccessFile(uploadFile,"r");
+        RandomAccessFile randomAccessFile = new RandomAccessFile(uploadFile, "r");
         FileChannel channel = randomAccessFile.getChannel();
-        FileByteRangeUpload fileByteRangeUpload = new FileByteRangeUpload(client, channel,        channel.size()
+        FileByteRangeUpload fileByteRangeUpload = new FileByteRangeUpload(client, channel, channel.size()
                 , "test.exe");
         System.out.println(fileByteRangeUpload.uploadChunk());
     }

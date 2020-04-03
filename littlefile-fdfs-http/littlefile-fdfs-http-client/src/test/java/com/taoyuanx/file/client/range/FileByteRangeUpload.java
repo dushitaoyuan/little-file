@@ -1,6 +1,5 @@
-package com.taoyuanx.file.client;
+package com.taoyuanx.file.client.range;
 
-import com.taoyuanx.littlefile.client.core.ByteRange;
 import com.taoyuanx.littlefile.client.core.FileChunk;
 import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
@@ -8,11 +7,10 @@ import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.nio.channels.FileChannel;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 public class FileByteRangeUpload {
@@ -44,14 +42,19 @@ public class FileByteRangeUpload {
         if (Objects.isNull(chunkList) && chunkList.isEmpty()) {
             throw new FdfsException("文件异常");
         }
+        Long sum = chunkList.stream().collect(Collectors.summingLong(chunk -> chunk.getLen()));
+        System.out.println("总大小:" + sum);
         FileChunk chunk = chunkList.get(0);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        OkHttpUtil.transferTo(channel, chunk.getStrat(), chunk.getEnd(), output);
+        OkHttpUtil.transferTo(channel, chunk.getStart(), chunk.getEnd(), output);
         String fileId = this.client.uploadAppendFile(new ByteArrayInputStream(output.toByteArray()), fileName);
         for (int index = 1, len = chunkList.size(); index < len; index++) {
-            output.reset();
-            OkHttpUtil.transferTo(channel, chunk.getStrat(), chunk.getEnd(), output);
-            this.client.appendFile(new ByteArrayInputStream(output.toByteArray()), fileName, chunk.getStrat(), fileId);
+            output = new ByteArrayOutputStream();
+            chunk = chunkList.get(index);
+            OkHttpUtil.transferTo(channel, chunk.getStart(), chunk.getEnd(), output);
+            byte[] bytes = output.toByteArray();
+            System.out.println("calc len" + chunk.getLen() + " real " + bytes.length);
+            this.client.appendFile(new ByteArrayInputStream(bytes), fileName, fileId);
         }
         return fileId;
     }

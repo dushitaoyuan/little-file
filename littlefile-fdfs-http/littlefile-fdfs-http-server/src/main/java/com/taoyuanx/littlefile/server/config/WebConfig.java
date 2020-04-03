@@ -7,6 +7,7 @@ import com.taoyuanx.littlefile.server.security.TokenInterceptor;
 import com.taoyuanx.littlefile.server.service.FileValidateService;
 import com.taoyuanx.littlefile.server.service.impl.FileValidateServiceImpl;
 import com.taoyuanx.littlefile.server.utils.ResponseUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @ControllerAdvice
+@Slf4j
 public class WebConfig implements WebMvcConfigurer {
 
 
@@ -55,6 +57,8 @@ public class WebConfig implements WebMvcConfigurer {
             if (Objects.nonNull(serviceException.getErrorCode())) {
                 errorCode = serviceException.getErrorCode();
             }
+        }else {
+            log.error("系统异常",e);
         }
         Result errorResult = ResultBuilder.failed(errorCode, errorMsg);
         //返回json

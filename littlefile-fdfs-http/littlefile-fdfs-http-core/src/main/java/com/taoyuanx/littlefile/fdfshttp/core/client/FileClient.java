@@ -16,12 +16,22 @@ public interface FileClient {
 
     String upload(InputStream fileInput, String fileName);
 
+
     /**
      * 断点上传
      */
     String uploadAppendFile(InputStream fileInput, String fileName);
 
-    void appendFile(InputStream fileInput, String fileName, Long start, String fileId);
+    /**
+     * 追加
+     */
+    void appendFile(InputStream fileInput, String fileName, String fileId);
+
+    /**
+     * 覆盖追加
+     */
+    void coverAppendFile(InputStream fileInput, String fileName, Long start, String fileId);
+
 
     /**
      * 上传本地图片
