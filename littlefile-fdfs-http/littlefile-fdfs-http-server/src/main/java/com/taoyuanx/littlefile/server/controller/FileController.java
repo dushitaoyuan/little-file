@@ -75,7 +75,7 @@ public class FileController {
             @ApiParam(value = "文件偏移量", required = false) @RequestParam(value = "offset", required = false) Long offset)
             throws ServiceException {
         if (StringUtils.isEmpty(fileId)) {
-            return ResultBuilder.success(fastdfsService.uploadAppendFile(file));
+            return ResultBuilder.successResult(fastdfsService.uploadAppendFile(file));
         } else if (Objects.nonNull(offset)) {
             fastdfsService.modifyFile(file, offset, fileId);
         } else {
