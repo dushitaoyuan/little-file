@@ -35,27 +35,10 @@ public interface FileClient {
 
     /**
      * 上传本地图片
-     *
-     * @param localFile
-     * @param cutSize   预览图尺寸 如:20x20,30x30,100x100 不传,不生成预览图,可生成多个预览图
-     * @return
      */
     MasterAndSlave uploadImage(String localFile, String cutSize);
-
-    /**
-     * 上传本地图片
-     *
-     * @param cutSize 预览图尺寸  如:20x20,30x30,100x100 不传,不生成预览图,可生成多个预览图
-     * @return
-     */
     MasterAndSlave uploadImage(byte[] fileBytes, String fileName, String cutSize);
 
-    /**
-     * 上传本地图片
-     *
-     * @param cutSize 预览图尺寸  如:20x20,30x30,100x100 不传,不生成预览图,可生成多个预览图
-     * @return
-     */
     MasterAndSlave uploadImage(InputStream fileInput, String fileName, String cutSize);
 
 
@@ -79,13 +62,10 @@ public interface FileClient {
     /**
      * 文件下载
      *
-     * @param fileId
-     * @param destFile
      */
     void downLoad(String fileId, String destFile);
 
     void downLoad(String fileId, OutputStream output);
-
     byte[] downLoad(String fileId);
 
     /**
@@ -101,4 +81,5 @@ public interface FileClient {
      * @param fileId 文件id
      */
     FileInfo getFileInfo(String fileId);
+
 }

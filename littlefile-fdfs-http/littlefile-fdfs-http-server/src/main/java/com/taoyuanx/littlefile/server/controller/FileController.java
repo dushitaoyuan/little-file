@@ -29,9 +29,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Objects;
 
-/**
- * create by lorne on 2017/9/26
- */
+
 @RestController
 @RequestMapping("/file")
 @Api(value = "文件通用服务接口")
@@ -48,7 +46,7 @@ public class FileController {
     @ApiOperation(value = "上传文件", notes = "上传文件")
     @PostMapping(value = "/upload")
     public Result uploadFile(
-            @ApiParam(value = "文件流,name=file", required = true) @RequestParam("file") MultipartFile file)
+            @ApiParam(value = "文件", required = true) @RequestParam("file") MultipartFile file)
             throws ServiceException {
         return ResultBuilder.successResult(fastdfsService.uploadFile(file));
     }
@@ -57,7 +55,6 @@ public class FileController {
     @PostMapping(value = "/uploadSlave")
     public Result uploadSlaveFile(
             @ApiParam(value = "从文件流,name=file", required = true) @RequestParam("file") MultipartFile file,
-
             @ApiParam(value = "主文件id", required = false) @RequestParam("masterFileId") String masterFileId,
             @ApiParam(value = "前缀名称", required = false) @RequestParam(value = "prefixName", required = false) String prefixName)
             throws ServiceException {
@@ -100,7 +97,7 @@ public class FileController {
             @ApiParam(value = "文件流,name=file", required = true) @RequestParam(value = "file") MultipartFile file,
 
 
-            @ApiParam(value = "裁剪尺寸（数组类型）如:20x20,30x30,100x100", required = false) @RequestParam(value = "cutSize", required = false) String cutSize)
+            @ApiParam(value = "裁剪尺寸,如:20x20,30x30,100x100", required = false) @RequestParam(value = "cutSize", required = false) String cutSize)
             throws ServiceException {
         if (StringUtils.isEmpty(cutSize)) {
             MasterAndSlave result = new MasterAndSlave();
@@ -247,5 +244,11 @@ public class FileController {
         }
         throw new ServiceException("断点下载, 无法计算文件大小");
     }
+
+    @ApiOperation(value = "", notes = "心跳监测")
+    @GetMapping
+    public void hello() {
+    }
+
 
 }

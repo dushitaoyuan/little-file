@@ -55,10 +55,9 @@ public class ParamBuilder {
         });
         if (urlBuilder.length() == 1) {
             return baseUrl;
-        } else {
+        } else if (urlBuilder.charAt(urlBuilder.length() - 1) == '&') {
             urlBuilder.deleteCharAt(urlBuilder.length() - 1);
-            return baseUrl + urlBuilder.toString();
         }
-
+        return baseUrl + urlBuilder.toString();
     }
 }
