@@ -3,9 +3,8 @@ package com.taoyuanx.littlefile.client.impl.interceptor;
 import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
 import com.taoyuanx.littlefile.client.ex.FdfsException;
-import com.taoyuanx.littlefile.client.impl.loadbalance.FileServer;
+import com.taoyuanx.littlefile.client.core.FileServer;
 import com.taoyuanx.littlefile.client.impl.loadbalance.ILoadbalance;
-import com.taoyuanx.littlefile.client.utils.ServerUtil;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
@@ -110,11 +109,11 @@ public class FileClientInterceptor implements Interceptor {
         return serverUrlCache.get(fileServer);
     }
 
-    private FileServer loopForAlive(List<FileServer> excludeFileServer) {
+    private FileServer loopForAlive(List<FileServer> excludeFileServerList) {
 
         Optional<FileServer> anyAliveFileServer = clientConfig.getFdfsServer().stream().filter(fileServer -> {
-            for (FileServer excludeServer : excludeFileServer) {
-                if (excludeFileServer.equals(fileServer)) {
+            for (FileServer excludeServer : excludeFileServerList) {
+                if (excludeServer.equals(fileServer)) {
                     return false;
                 }
             }

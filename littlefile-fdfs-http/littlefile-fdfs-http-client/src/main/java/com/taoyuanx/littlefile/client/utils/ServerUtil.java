@@ -2,8 +2,8 @@ package com.taoyuanx.littlefile.client.utils;
 
 import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
-import com.taoyuanx.littlefile.client.impl.loadbalance.FdfsApi;
-import com.taoyuanx.littlefile.client.impl.loadbalance.FileServer;
+import com.taoyuanx.littlefile.client.core.FdfsApi;
+import com.taoyuanx.littlefile.client.core.FileServer;
 import okhttp3.Request;
 
 /**
@@ -12,7 +12,6 @@ import okhttp3.Request;
  */
 public class ServerUtil {
     public static boolean checkServerAlive(FileServer fileServer, ClientConfig clientConfig) {
-
         if (fileServer.isAlive()) {
             return true;
         }

@@ -4,7 +4,7 @@ import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
 import com.taoyuanx.littlefile.client.core.ParamBuilder;
 import com.taoyuanx.littlefile.client.ex.FdfsException;
-import com.taoyuanx.littlefile.client.impl.loadbalance.FdfsApi;
+import com.taoyuanx.littlefile.client.core.FdfsApi;
 import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
 import com.taoyuanx.littlefile.client.utils.StrUtil;
 import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;

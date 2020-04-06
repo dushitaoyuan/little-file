@@ -4,8 +4,9 @@ package com.taoyuanx.littlefile.client.impl;
 import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FastFileClientFactory;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
+import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.impl.interceptor.FileClientInterceptor;
-import com.taoyuanx.littlefile.client.impl.loadbalance.FdfsApi;
+import com.taoyuanx.littlefile.client.core.FdfsApi;
 import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
@@ -64,13 +65,12 @@ public class DefaultSingletonFastFileClientFactory implements FastFileClientFact
             OkHttpClient okHttpClient = new OkHttpClient().newBuilder().hostnameVerifier(new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
-                    //强行返回true 即验证成功
                     return true;
                 }
             }).sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager)
-                    .connectTimeout(config.getConnectTimeout(), TimeUnit.SECONDS)//连接超时时间
-                    .connectionPool(new ConnectionPool(config.getMaxIdleConnections(), config.getKeepAliveDuration(), TimeUnit.SECONDS))//连接数量,保持连接时间
-                    .retryOnConnectionFailure(false)//重试策略
+                    .connectTimeout(config.getConnectTimeout(), TimeUnit.SECONDS)
+                    .connectionPool(new ConnectionPool(config.getMaxIdleConnections(), config.getKeepAliveDuration(), TimeUnit.SECONDS))
+                    .retryOnConnectionFailure(false)
                     .addInterceptor(clientInterceptor)
                     .build();
 
@@ -85,6 +85,7 @@ public class DefaultSingletonFastFileClientFactory implements FastFileClientFact
             fileClient = new FileClientImpl(config);
         } catch (Exception e) {
             log.error("初始化失败", e);
+            throw new FdfsException("配置初始化失败", e);
         }
     }
 

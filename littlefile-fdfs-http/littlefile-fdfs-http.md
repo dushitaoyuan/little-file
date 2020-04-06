@@ -4,7 +4,8 @@
 
 1. littlefile-fdfs-http-server   服务端
 2. littlefile-fdfs-http-core 核心依赖
-3. littlefile-fdfs-http-client client SDK
+3. littlefile-fdfs-http-client client SDK  
+支持 心跳监测 client端负载均衡
 
 
 ## http api
@@ -48,6 +49,7 @@
 | /file/download/range | GET         | 断点下载       |
 | /file/info           | GET         | 信息获取       |
 | /file/preview        | GET         | 文件下载或预览 |
+| /file/hello        | GET         | 心跳监测 |
 
 ####  /file/upload
 
@@ -241,3 +243,9 @@
 
 返回结果
  文件流(或转换后的文件数据流)
+ ####  /file/hello
+ - GET
+ - 参数
+ 无
+ - 返回结果
+  http status 200

@@ -1,9 +1,6 @@
-package com.taoyuanx.littlefile.client.impl.loadbalance;
-
-import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
+package com.taoyuanx.littlefile.client.core;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author dushitaoyuan

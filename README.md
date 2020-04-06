@@ -158,9 +158,9 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 [fastdfs协议详解](fastdfs/fastdfs-protocol.md)
 
 ## todo
-- http 文件服务:集合多种存储服务,包含简单功能:上传,下载,删除
+- http 文件服务:集合多种存储服务,包含简单功能:上传,下载,删除(已完成)
 
-- fastdfs 专用http服务:封装fastdfs client 为http 方便非java语言使用
+- fastdfs 专用http服务:封装fastdfs client 为http 方便非java语言使用(已完成)
 
 ## 仓库地址
 

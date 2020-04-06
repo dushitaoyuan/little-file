@@ -1,5 +1,7 @@
 package com.taoyuanx.littlefile.client.impl.loadbalance;
 
+import com.taoyuanx.littlefile.client.core.FileServer;
+
 import java.util.List;
 
 /**

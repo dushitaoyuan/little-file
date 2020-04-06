@@ -1,8 +1,6 @@
 package com.taoyuanx.littlefile.client.core;
 
 import com.taoyuanx.littlefile.client.ex.FdfsException;
-import com.taoyuanx.littlefile.client.impl.loadbalance.FdfsApi;
-import com.taoyuanx.littlefile.client.impl.loadbalance.FileServer;
 import com.taoyuanx.littlefile.client.impl.loadbalance.ILoadbalance;
 import com.taoyuanx.littlefile.client.impl.loadbalance.LoadbalanceEnum;
 import com.taoyuanx.littlefile.client.utils.ServerUtil;
@@ -13,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**

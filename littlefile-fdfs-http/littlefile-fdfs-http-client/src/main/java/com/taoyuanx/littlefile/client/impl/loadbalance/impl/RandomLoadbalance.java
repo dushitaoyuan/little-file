@@ -1,8 +1,7 @@
 package com.taoyuanx.littlefile.client.impl.loadbalance.impl;
 
-import com.taoyuanx.littlefile.client.impl.loadbalance.FileServer;
+import com.taoyuanx.littlefile.client.core.FileServer;
 import com.taoyuanx.littlefile.client.impl.loadbalance.ILoadbalance;
-import com.taoyuanx.littlefile.client.utils.ServerUtil;
 
 import java.util.List;
 import java.util.Random;

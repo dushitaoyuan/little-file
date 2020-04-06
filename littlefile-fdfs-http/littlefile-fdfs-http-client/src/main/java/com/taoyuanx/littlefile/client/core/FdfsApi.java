@@ -1,4 +1,4 @@
-package com.taoyuanx.littlefile.client.impl.loadbalance;
+package com.taoyuanx.littlefile.client.core;
 
 /**
  * api 概览
