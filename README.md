@@ -19,8 +19,8 @@ littlefile-core 的文件服务访问(下载,访问,对接已有文件系统)功
  理论上 依托fastdfs  封装http,可支持任何客户端
  
 5. fastdfs   
-fastdfs 最全文档解析  
-
+fastdfs (最全文档解析)[fastdfs/fastdfs.md]    
+fastdfs (协议解析)[fastdfs/fastdfs-protocol.md]  
  
 ## 软件架构
 客户端文件请求(携带参数:文件服务器路径,token,访问类型(查看或者下载))->->web服务,拉取远端文件到Web服务器所在本地磁盘->返回文件流信息(可选gzip压缩)
@@ -158,9 +158,9 @@ littlefile.local.dirs=L:/tmp2,L:/tmp3
 [fastdfs协议详解](fastdfs/fastdfs-protocol.md)
 
 ## todo
-- http 文件服务:集合多种存储服务,包含简单功能:上传,下载,删除
+- http 文件服务:集合多种存储服务,包含简单功能:上传,下载,删除(已完成)
 
-- fastdfs 专用http服务:封装fastdfs client 为http 方便非java语言使用
+- fastdfs 专用http服务:封装fastdfs client 为http 方便非java语言使用(已完成)
 
 ## 仓库地址
 

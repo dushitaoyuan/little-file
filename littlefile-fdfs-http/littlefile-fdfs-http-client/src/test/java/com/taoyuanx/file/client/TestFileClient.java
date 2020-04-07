@@ -62,11 +62,9 @@ public class TestFileClient {
      */
     @Test
     public void testDownLoadRannge() throws Exception {
-        String fileId = "group1/M00/00/00/wKgD0l6HWkqEGQKdAAAAAIjOdZM087.exe";
+        String fileId = "group1/M00/00/01/wKgeyF6GCMKEPEmzAAAAAFoHlhw743.exe";
         FileByteRangeDownLoad fileByteRangeDownLoad = new FileByteRangeDownLoad(client, fileId, new FileOutputStream("d://down.exe"));
-
-        //fileByteRangeDownLoad.memoryDownLoad();
-        fileByteRangeDownLoad.diskDownLoad();
+        fileByteRangeDownLoad.downLoad();
     }
 
     /**

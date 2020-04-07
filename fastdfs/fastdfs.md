@@ -2,7 +2,7 @@
 
 #### fastdfs架构简介
 首先简单了解一下基础概念，FastDFS是一个开源的轻量级分布式文件系统，由跟踪服务器（tracker server）、存储服务器（storage server）和客户端（client）三个部分组成，主要解决了海量数据存储问题，特别适合以中小文件（建议范围：4KB < file_size <500MB）为载体的在线服务，如果需要对外提供http服务需要在storage server上安装nginx+fastdfs_module服务。FastDFS的系统结构图如下：<br/>
-![avatar](https://github.com/dushitaoyuan/little-file/blob/master/fastdfs/img/jieshao.png)
+![avatar](img/jieshao.png)
 <br/>
 如上图,FastDFS的两个核心概念分别是：<br/>
 1.Tracker（跟踪器）<br/>
@@ -11,9 +11,10 @@
 Tracker主要做调度工作，相当于mvc中的controller的角色，在访问上起负载均衡的作用。跟踪器和存储节点都可以由一台或多台服务器构成，跟踪器和存储节点中的服务器均可以随时增加或下线而不会影响线上服务，其中跟踪器中的所有服务器都是对等的，可以根据服务器的压力情况随时增加或减少。Tracker负责管理所有的Storage和group，每个storage在启动后会连接Tracker，告知自己所属的group等信息，并保持周期性的心跳，tracker根据storage的心跳信息，建立group==>[storage server list]的映射表，Tracker需要管理的元信息很少，会全部存储在内存中；另外tracker上的元信息都是由storage汇报的信息生成的，本身不需要持久化任何数据，这样使得tracker非常容易扩展，直接增加tracker机器即可扩展为tracker cluster来服务，cluster里每个tracker之间是完全对等的，所有的tracker都接受stroage的心跳信息，生成元数据信息来提供读写服务。
 Storage采用了分卷[Volume]（或分组[group]）的组织方式，存储系统由一个或多个组组成，组与组之间的文件是相互独立的，所有组的文件容量累加就是整个存储系统中的文件容量。一个卷[Volume]（组[group]）可以由一台或多台存储服务器组成，一个组中的存储服务器中的文件都是相同的，组中的多台存储服务器起到了冗余备份和负载均衡的作用，数据互为备份，存储空间以group内容量最小的storage为准，所以建议group内的多个storage尽量配置相同，以免造成存储空间的浪费。
 工作流程:<br/>
-![avatar](https://github.com/dushitaoyuan/little-file/blob/master/fastdfs/img/liucheng.png)
+![avatar](img/liucheng.png)
 <br/>
 1.client连接tracker server，tracker server查询storage server 列表，根据配置的负载均衡算法（随机，第一 storage server，第一storage server 优先级排序（最小值）），返回一个storage ip <br/>
+
 2. client 根据返回的ip连接 storage server 进行上传 <br/>
 3. storage server 根据配置的存储路径，根据指定的负载算法（随机，最大剩余空间）选择一个路径存储到磁盘上，并返回结果 <br/>
 备注：<br/>
@@ -606,11 +607,11 @@ tracker server 迁移base path<br/>
 修改 storage base_path 和 tracker server base_path 下dat数据信息<br/>
 Tracker<br/>
 
-![avatar](https://github.com/dushitaoyuan/little-file/blob/master/fastdfs/img/t1.png)
+![avatar](img/t1.png)
 
 Storage<br/>
 
-![avatar](https://github.com/dushitaoyuan/little-file/blob/master/fastdfs/img/t2.png)
+![avatar](img/t2.png)
 
 步骤:
 1.迁移storage<br/>

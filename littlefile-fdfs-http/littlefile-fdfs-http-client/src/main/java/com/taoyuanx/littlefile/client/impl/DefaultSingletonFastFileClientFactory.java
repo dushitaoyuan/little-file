@@ -4,7 +4,9 @@ package com.taoyuanx.littlefile.client.impl;
 import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FastFileClientFactory;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
-import com.taoyuanx.littlefile.client.impl.security.TokenInterceptor;
+import com.taoyuanx.littlefile.client.ex.FdfsException;
+import com.taoyuanx.littlefile.client.impl.interceptor.FileClientInterceptor;
+import com.taoyuanx.littlefile.client.core.FdfsApi;
 import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
@@ -59,30 +61,31 @@ public class DefaultSingletonFastFileClientFactory implements FastFileClientFact
             sslContext.init(null, new TrustManager[]{trustManager}, null);
             sslParams.sSLSocketFactory = sslContext.getSocketFactory();
             sslParams.trustManager = trustManager;
-            Interceptor tokenInterceptor = new TokenInterceptor(config.getToken());
-            OkHttpClient client = new OkHttpClient().newBuilder().hostnameVerifier(new HostnameVerifier() {
+            Interceptor clientInterceptor = new FileClientInterceptor(config);
+            OkHttpClient okHttpClient = new OkHttpClient().newBuilder().hostnameVerifier(new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
-                    //强行返回true 即验证成功
                     return true;
                 }
             }).sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager)
-                    .connectTimeout(config.getConnectTimeout(), TimeUnit.SECONDS)//连接超时时间
-                    .connectionPool(new ConnectionPool(config.getMaxIdleConnections(), config.getKeepAliveDuration(), TimeUnit.SECONDS))//连接数量,保持连接时间
-                    .retryOnConnectionFailure(false)//重试策略
-                    .addInterceptor(tokenInterceptor)
+                    .connectTimeout(config.getConnectTimeout(), TimeUnit.SECONDS)
+                    .connectionPool(new ConnectionPool(config.getMaxIdleConnections(), config.getKeepAliveDuration(), TimeUnit.SECONDS))
+                    .retryOnConnectionFailure(false)
+                    .addInterceptor(clientInterceptor)
                     .build();
 
 
-            List<FdfsFileClientConstant.FdfsApi> fdfsApiList = Arrays.asList(FdfsFileClientConstant.FdfsApi.values());
-            String fileClientBaseUrl = config.getFdfsHttpBaseUrl();
-            Map<FdfsFileClientConstant.FdfsApi, String> apiMap = new HashMap(fdfsApiList.size());
+            List<FdfsApi> fdfsApiList = Arrays.asList(FdfsApi.values());
+            Map<FdfsApi, String> apiMap = new HashMap(fdfsApiList.size());
             fdfsApiList.stream().forEach(api -> {
-                apiMap.put(api, fileClientBaseUrl + api.path);
+                apiMap.put(api, FdfsFileClientConstant.FILE_CLIENT_BASE_URL + FdfsFileClientConstant.FILE_CLIENT_PATH_BASE + api.path);
             });
-            fileClient = new FileClientImpl(client, apiMap);
+            config.setApiMap(apiMap);
+            config.setOkHttpClient(okHttpClient);
+            fileClient = new FileClientImpl(config);
         } catch (Exception e) {
             log.error("初始化失败", e);
+            throw new FdfsException("配置初始化失败", e);
         }
     }
 
