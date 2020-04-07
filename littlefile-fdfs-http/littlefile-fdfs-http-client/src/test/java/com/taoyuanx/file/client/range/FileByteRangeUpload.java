@@ -7,6 +7,7 @@ import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Objects;
@@ -45,14 +46,14 @@ public class FileByteRangeUpload {
         Long sum = chunkList.stream().collect(Collectors.summingLong(chunk -> chunk.getLen()));
         System.out.println("总大小:" + sum);
         FileChunk chunk = chunkList.get(0);
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        OkHttpUtil.transferTo(channel, chunk.getStart(), chunk.getEnd(), output);
-        String fileId = this.client.uploadAppendFile(new ByteArrayInputStream(output.toByteArray()), fileName);
+        ByteArrayOutputStream memoryChunk = new ByteArrayOutputStream();
+        OkHttpUtil.transferTo(channel, chunk.getStart(), chunk.getEnd(), memoryChunk);
+        String fileId = this.client.uploadAppendFile(new ByteArrayInputStream(memoryChunk.toByteArray()), fileName);
         for (int index = 1, len = chunkList.size(); index < len; index++) {
-            output = new ByteArrayOutputStream();
+            memoryChunk.reset();
             chunk = chunkList.get(index);
-            OkHttpUtil.transferTo(channel, chunk.getStart(), chunk.getEnd(), output);
-            byte[] bytes = output.toByteArray();
+            OkHttpUtil.transferTo(channel, chunk.getStart(), chunk.getEnd(), memoryChunk);
+            byte[] bytes = memoryChunk.toByteArray();
             System.out.println("calc len" + chunk.getLen() + " real " + bytes.length);
             this.client.appendFile(new ByteArrayInputStream(bytes), fileName, fileId);
         }

@@ -58,15 +58,20 @@ public class TestFileClient {
     }
 
     /**
-     * 测试info
+     * 测试断点下载
      */
     @Test
     public void testDownLoadRannge() throws Exception {
-        String fileId = "group1/M00/00/01/wKgeyF6GCMKEPEmzAAAAAFoHlhw743.exe";
+        String fileId = "group1/M00/00/00/wKgD0l6HWkqEGQKdAAAAAIjOdZM087.exe";
         FileByteRangeDownLoad fileByteRangeDownLoad = new FileByteRangeDownLoad(client, fileId, new FileOutputStream("d://down.exe"));
-        fileByteRangeDownLoad.downLoad();
+
+        //fileByteRangeDownLoad.memoryDownLoad();
+        fileByteRangeDownLoad.diskDownLoad();
     }
 
+    /**
+     * 测试断点上传
+     */
     @Test
     public void testUploadRannge() throws Exception {
         String uploadFile = "d://test.exe";

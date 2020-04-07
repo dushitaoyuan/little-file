@@ -12,8 +12,11 @@ import java.io.*;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -145,9 +148,7 @@ public class OkHttpUtil {
 
     public static void transferTo(FileChannel input, Long start, Long end, OutputStream output) {
         try {
-
             input.transferTo(start, end - start + 1, Channels.newChannel(output));
-
         } catch (Exception e) {
             log.error("文件服务异常", e);
             throw new FdfsException("文件服务异常");
@@ -183,19 +184,21 @@ public class OkHttpUtil {
     public static List<FileChunk> chunkSize(Long fileSize, Long chunkSize) {
         List<FileChunk> partList = new ArrayList<>();
         long start = 0, remain = fileSize, tempChunkSize = chunkSize + MIN_CHUNK_SIZE;
+        int chunkIndex = 0;
         while (remain > 0) {
             if (remain < chunkSize) {
-                partList.add(new FileChunk(start, fileSize - 1));
+                partList.add(new FileChunk(start, fileSize - 1, chunkIndex));
                 return partList;
             } else if (remain < tempChunkSize) {
-                partList.add(new FileChunk(start, fileSize - 1));
+                partList.add(new FileChunk(start, fileSize - 1, chunkIndex));
                 remain = 0;
                 start += tempChunkSize;
             } else {
-                partList.add(new FileChunk(start, start + chunkSize - 1));
+                partList.add(new FileChunk(start, start + chunkSize - 1, chunkIndex));
                 remain -= chunkSize;
                 start += chunkSize;
             }
+            chunkIndex++;
         }
         return partList;
 
