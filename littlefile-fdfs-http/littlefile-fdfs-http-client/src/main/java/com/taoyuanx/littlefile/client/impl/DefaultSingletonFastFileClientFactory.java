@@ -8,6 +8,7 @@ import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.impl.interceptor.FileClientInterceptor;
 import com.taoyuanx.littlefile.client.core.FdfsApi;
 import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
@@ -38,7 +39,7 @@ public class DefaultSingletonFastFileClientFactory implements FastFileClientFact
     private static FileClient fileClient;
 
     @Override
-    public FileClient getFileClient() {
+    public FileClient fileClient() {
         if (null == fileClient) {
             synchronized (DefaultSingletonFastFileClientFactory.class) {
                 if (null == fileClient) {
@@ -48,6 +49,7 @@ public class DefaultSingletonFastFileClientFactory implements FastFileClientFact
         }
         return fileClient;
     }
+
 
     /**
      * 初始化

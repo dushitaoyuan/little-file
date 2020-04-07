@@ -3,6 +3,7 @@ package com.taoyuanx.file.client;
 
 import com.taoyuanx.file.client.range.FileByteRangeDownLoad;
 import com.taoyuanx.file.client.range.FileByteRangeUpload;
+import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FastFileClientFactory;
 import com.taoyuanx.littlefile.client.impl.DefaultSingletonFastFileClientFactory;
 import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
@@ -15,11 +16,13 @@ import java.nio.channels.FileChannel;
 
 public class TestFileClient {
     public static FileClient client = null;
+    public static ClientConfig clientConfig = null;
 
     @Before
     public void init() {
         FastFileClientFactory fastFileClientFactory = new DefaultSingletonFastFileClientFactory();
-        client = fastFileClientFactory.getFileClient();
+        client = fastFileClientFactory.fileClient();
+        clientConfig = (ClientConfig) client.getClientConfig();
     }
 
     /**
@@ -56,17 +59,6 @@ public class TestFileClient {
     public void testGetFileInfo() {
         System.out.println(client.getFileInfo("group1/M00/00/00/wKgD0l6E2GeAFrLRAAB5ok9XEwo822.png"));
     }
-
-    /**
-     * 测试断点下载
-     */
-    @Test
-    public void testDownLoadRannge() throws Exception {
-        String fileId = "group1/M00/00/01/wKgeyF6GCMKEPEmzAAAAAFoHlhw743.exe";
-        FileByteRangeDownLoad fileByteRangeDownLoad = new FileByteRangeDownLoad(client, fileId, new FileOutputStream("d://down.exe"));
-        fileByteRangeDownLoad.downLoad();
-    }
-
     /**
      * 测试断点上传
      */
@@ -75,8 +67,19 @@ public class TestFileClient {
         String uploadFile = "d://test.exe";
         RandomAccessFile randomAccessFile = new RandomAccessFile(uploadFile, "r");
         FileChannel channel = randomAccessFile.getChannel();
-        FileByteRangeUpload fileByteRangeUpload = new FileByteRangeUpload(client, channel, channel.size()
+        FileByteRangeUpload fileByteRangeUpload = new FileByteRangeUpload(client, clientConfig,channel, channel.size()
                 , "test.exe");
         System.out.println(fileByteRangeUpload.uploadChunk());
     }
+    /**
+     * 测试断点下载
+     */
+    @Test
+    public void testDownLoadRannge() throws Exception {
+        String fileId = "group1/M00/00/00/wKgD0l6MdkaERHm2AAAAAIjOdZM995.exe";
+        FileByteRangeDownLoad fileByteRangeDownLoad = new FileByteRangeDownLoad(client, clientConfig, fileId, new FileOutputStream("d://down.exe"));
+        fileByteRangeDownLoad.memoryDownLoad();
+    }
+
+
 }

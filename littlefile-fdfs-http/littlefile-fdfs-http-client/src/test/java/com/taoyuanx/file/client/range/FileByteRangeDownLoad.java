@@ -1,5 +1,6 @@
 package com.taoyuanx.file.client.range;
 
+import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FileChunk;
 import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
@@ -32,33 +33,36 @@ import java.util.stream.Collectors;
  * @date 2019/7/8
  */
 public class FileByteRangeDownLoad {
+    private ClientConfig clientConfig;
     private String fileId;
     private FileClient client;
     private Long fileSize;
 
     private OutputStream outputStream;
-    private static final Long DEFAULT_CHUNK_SIZE = 4L << 20;
-    private static ThreadPoolExecutor poolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(6);
+    private static ThreadPoolExecutor poolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
 
-    public FileByteRangeDownLoad(FileClient client, String fileId, OutputStream outputStream) {
+    public FileByteRangeDownLoad(FileClient client, ClientConfig clientConfig, String fileId, OutputStream outputStream) {
         this.client = client;
         this.fileId = fileId;
         this.outputStream = outputStream;
+        this.clientConfig = clientConfig;
     }
 
-    public FileByteRangeDownLoad(FileClient client, Long fileSize, OutputStream outputStream) {
+    public FileByteRangeDownLoad(FileClient client, ClientConfig clientConfig, Long fileSize, OutputStream outputStream) {
         this.client = client;
         this.fileSize = fileSize;
         this.outputStream = outputStream;
+        this.clientConfig = clientConfig;
+
     }
 
     public void memoryDownLoad() throws Exception {
 
         long totalSize = getFileSize();
         Long start = System.currentTimeMillis();
-        if (totalSize > 2 * 1024 * 1024) {
+        if (totalSize > clientConfig.getDownLoadChunkSize()) {
             LongAdder count = new LongAdder();
-            List<Future<byte[]>> downLoadList = OkHttpUtil.chunkSize(totalSize, DEFAULT_CHUNK_SIZE).stream().map(chunk -> {
+            List<Future<byte[]>> downLoadList = OkHttpUtil.chunkSize(totalSize, clientConfig.getDownLoadChunkSize()).stream().map(chunk -> {
                 return poolExecutor.submit(new MemoryDownLoad(count, chunk, client, fileId));
             }).collect(Collectors.toList());
             //合并文件
@@ -75,17 +79,16 @@ public class FileByteRangeDownLoad {
     }
 
     public void diskDownLoad() throws Exception {
-
         long totalSize = getFileSize();
         Long start = System.currentTimeMillis();
-        if (totalSize > 2 * 1024 * 1024) {
+        if (totalSize >clientConfig.getDownLoadChunkSize()) {
             LongAdder count = new LongAdder();
             String chunkDir = "d://chunkDir/" + UUID.randomUUID().toString().replaceAll("-", "");
             File chunkDirFile = new File(chunkDir);
             if (!chunkDirFile.exists()) {
                 chunkDirFile.mkdirs();
             }
-            List<Future<File>> downLoadList = OkHttpUtil.chunkSize(totalSize, DEFAULT_CHUNK_SIZE).stream().map(chunk -> {
+            List<Future<File>> downLoadList = OkHttpUtil.chunkSize(totalSize, clientConfig.getDownLoadChunkSize()).stream().map(chunk -> {
                 return poolExecutor.submit(new DiskDownLoad(count, chunk, client, fileId, chunkDir));
             }).collect(Collectors.toList());
 
@@ -95,7 +98,6 @@ public class FileByteRangeDownLoad {
                 File file = diskFile.get();
                 FileInputStream fileInputStream = new FileInputStream(file);
                 FileChannel fileChannel = fileInputStream.getChannel();
-                fileChannel.map()
                 fileChannel.transferTo(0, fileInputStream.available(), mergeFileChannel);
             }
             Method method = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);

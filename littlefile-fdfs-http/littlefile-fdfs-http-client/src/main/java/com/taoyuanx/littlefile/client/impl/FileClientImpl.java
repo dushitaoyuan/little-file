@@ -23,10 +23,12 @@ import java.util.Map;
 public class FileClientImpl implements FileClient {
     private Map<FdfsApi, String> apiMap;
     private OkHttpClient client;
+    private ClientConfig clientConfig;
 
     public FileClientImpl(ClientConfig clientConfig) {
         this.client = clientConfig.getOkHttpClient();
         this.apiMap = clientConfig.getApiMap();
+        this.clientConfig = clientConfig;
     }
 
     @Override
@@ -284,6 +286,11 @@ public class FileClientImpl implements FileClient {
         String fileInfoUrl = apiMap.get(FdfsApi.FILE_INFO) + "?fileId=" + fileId;
         return OkHttpUtil.request(client, new Request.Builder()
                 .url(fileInfoUrl).get().tag(FdfsFileClientConstant.REQUEST_TOKEN_TAG).build(), FileInfo.class);
+    }
+
+    @Override
+    public Object getClientConfig() {
+        return this.clientConfig;
     }
 
 

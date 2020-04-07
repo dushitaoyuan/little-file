@@ -8,5 +8,6 @@ import com.taoyuanx.littlefile.fdfshttp.core.client.FileClient;
  * 文件客户端工厂
  */
 public interface FastFileClientFactory {
-	FileClient getFileClient();
+    FileClient fileClient();
+
 }

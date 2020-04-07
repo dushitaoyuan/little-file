@@ -6,11 +6,13 @@ package com.taoyuanx.littlefile.client.utils;
  */
 public class StrUtil {
     public static boolean isEmpty(String str) {
-        return null == str && "".equals(str);
+        return null == str || "".equals(str);
     }
+
     public static boolean isNotEmpty(String str) {
         return !isEmpty(str);
     }
+
     /**
      * 参照log4j  模板匹配
      * <p>

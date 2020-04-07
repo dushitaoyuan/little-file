@@ -82,4 +82,6 @@ public interface FileClient {
      */
     FileInfo getFileInfo(String fileId);
 
+    Object getClientConfig();
+
 }

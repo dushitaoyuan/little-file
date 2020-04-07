@@ -1,5 +1,6 @@
 package com.taoyuanx.file.client.range;
 
+import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FileChunk;
 import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 
 public class FileByteRangeUpload {
+    private  ClientConfig clientConfig;
     private FileClient client;
     private Long fileSize;
 
@@ -24,18 +26,18 @@ public class FileByteRangeUpload {
     private String fileName;
 
 
-    private static final Long DEFAULT_CHUNK_SIZE = 4L << 20;
 
-    public FileByteRangeUpload(FileClient client, FileChannel channel, Long fileSize, String fileName) {
-        this(client, channel, DEFAULT_CHUNK_SIZE, fileSize, fileName);
+    public FileByteRangeUpload(FileClient client, ClientConfig clientConfig, FileChannel channel, Long fileSize, String fileName) {
+        this(client, clientConfig,channel, clientConfig.getUploadChunkSize(), fileSize, fileName);
     }
 
-    public FileByteRangeUpload(FileClient client, FileChannel channel, Long chunkSize, Long fileSize, String fileName) {
+    public FileByteRangeUpload(FileClient client, ClientConfig clientConfig,  FileChannel channel, Long chunkSize, Long fileSize, String fileName) {
         this.client = client;
         this.channel = channel;
         this.chunkSize = chunkSize;
         this.fileSize = fileSize;
         this.fileName = fileName;
+        this.clientConfig=clientConfig;
     }
 
     public String uploadChunk() throws Exception {

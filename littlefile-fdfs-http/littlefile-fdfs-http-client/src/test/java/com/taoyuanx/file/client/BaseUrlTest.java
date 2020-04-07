@@ -16,7 +16,7 @@ public class BaseUrlTest {
     @Before
     public void init() {
         FastFileClientFactory fastFileClientFactory = new DefaultSingletonFastFileClientFactory();
-        client = fastFileClientFactory.getFileClient();
+        client = fastFileClientFactory.fileClient();
     }
 
 

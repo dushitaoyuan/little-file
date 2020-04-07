@@ -11,7 +11,11 @@ import okhttp3.Request;
  * @date 2020/4/515:22
  */
 public class ServerUtil {
+    /**
+     * 判断file server是否存活
+     */
     public static boolean checkServerAlive(FileServer fileServer, ClientConfig clientConfig) {
+
         if (fileServer.isAlive()) {
             return true;
         }

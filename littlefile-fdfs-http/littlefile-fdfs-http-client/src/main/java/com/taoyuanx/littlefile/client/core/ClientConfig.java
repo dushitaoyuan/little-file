@@ -1,6 +1,9 @@
 package com.taoyuanx.littlefile.client.core;
 
 import com.taoyuanx.littlefile.client.ex.FdfsException;
+import com.taoyuanx.littlefile.client.impl.loadbalance.ILoadbalance;
+import com.taoyuanx.littlefile.client.impl.loadbalance.LoadbalanceEnum;
+import com.taoyuanx.littlefile.client.utils.ServerUtil;
 import com.taoyuanx.littlefile.client.utils.StrUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -73,36 +78,24 @@ public class ClientConfig {
      * 上传分块大小 默认4m
      */
     private Long uploadChunkSize;
-    /**
-     * 大文件分片下载线程数 默认3
-     */
-    private Integer downLoadThreadNum = 3;
-    private ThreadPoolExecutor downLoadPool;
+
 
     public ClientConfig(String configPath) {
         try {
             Properties config = new Properties();
             config.load(ClientConfig.class.getClassLoader().getResourceAsStream(configPath));
-                this.fdfsServer = Arrays.asList(getProperty("fdfsServer").split(",")).stream().map(FileServer::new).collect(Collectors.toList());
+            this.fdfsServer = Arrays.asList(getProperty(config, "fdfsServer").split(",")).stream().map(FileServer::new).collect(Collectors.toList());
             this.connectTimeout = getProperty(config, Integer.class, "connectTimeout", 5);
             this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, "maxIdleConnections", 100);
             this.keepAliveDuration = this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, "keepAliveDuration", 15);
             this.token = getProperty(config, "token");
             this.downLoadChunkSize = getProperty(config, Long.class, "downLoadChunkSize", 4L << 20);
             this.uploadChunkSize = getProperty(config, Long.class, "uploadChunkSize", 4L << 20);
-            this.downLoadThreadNum= getProperty(config, Integer.class, "uploadChunkSize", 3);
-            if (config.containsKey("loadbalance")) {
-                this.loadbalance = LoadbalanceEnum.valueOf(config.getProperty("loadbalance")).getLoadbalance();
-            } else {
-                this.loadbalance = LoadbalanceEnum.Round.getLoadbalance();
-            }
-            if (config.containsKey("heartIdleTime")) {
-                this.heartIdleTime = Long.parseLong(config.getProperty("heartIdleTime"));
-                ;
-            } else {
-                this.heartIdleTime = 5000L;
-            }
+            this.loadbalance = LoadbalanceEnum.valueOf(getProperty(config, String.class, "loadbalance", LoadbalanceEnum.Round.name())).getLoadbalance();
+            this.heartIdleTime = getProperty(config, Long.class, "heartIdleTime", 5000L);
+
             ClientConfig myClientConfig = this;
+            //定时心跳检测
             fileServerTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
@@ -116,7 +109,7 @@ public class ClientConfig {
                         log.warn("server check error", e);
                     }
                 }
-            }, 30 * 1000L, this.heartIdleTime);
+            }, 5 * 1000L, this.heartIdleTime);
         } catch (FdfsException e) {
             throw e;
         } catch (Exception e) {
