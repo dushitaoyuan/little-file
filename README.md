@@ -17,11 +17,11 @@ littlefile-core 的文件服务访问(下载,访问,对接已有文件系统)功
  - littlefile-fdfs-http-client client端
  - 基于 fastdfs 5.11 (也可升级最新6.x版,基本无需改动)
  理论上 依托fastdfs  封装http,可支持任何客户端   
-   (fastdfs-http文档)[littlefile-fdfs-http/littlefile-fdfs-http.md]  
+   []fastdfs-http文档]: littlefile-fdfs-http/littlefile-fdfs-http.md  
  
 5. fastdfs   
-fastdfs (最全文档解析)[fastdfs/fastdfs.md]    
-fastdfs (协议解析)[fastdfs/fastdfs-protocol.md]  
+fastdfs [最全文档解析]: fastdfs/fastdfs.md    
+fastdfs [协议解析]: fastdfs/fastdfs-protocol.md  
  
 ## 软件架构
 客户端文件请求(携带参数:文件服务器路径,token,访问类型(查看或者下载))->->web服务,拉取远端文件到Web服务器所在本地磁盘->返回文件流信息(可选gzip压缩)
