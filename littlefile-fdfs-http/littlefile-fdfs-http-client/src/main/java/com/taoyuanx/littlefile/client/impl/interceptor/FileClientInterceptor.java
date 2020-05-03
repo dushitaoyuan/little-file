@@ -2,21 +2,19 @@ package com.taoyuanx.littlefile.client.impl.interceptor;
 
 import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
-import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.core.FileServer;
+import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.impl.loadbalance.ILoadbalance;
-import com.taoyuanx.littlefile.client.utils.OkHttpUtil;
-import com.taoyuanx.littlefile.client.utils.ServerUtil;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class FileClientInterceptor implements Interceptor {
@@ -28,16 +26,6 @@ public class FileClientInterceptor implements Interceptor {
     public FileClientInterceptor(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
         this.loadbalance = clientConfig.getLoadbalance();
-        /**
-         * 定时心跳监测
-         */
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
-        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                ServerUtil.heartBeatCheck(clientConfig);
-            }
-        }, 5000L, 3, TimeUnit.SECONDS);
 
     }
 
