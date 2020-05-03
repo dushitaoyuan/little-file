@@ -24,6 +24,12 @@ public class FileServer {
         return serverUrl;
     }
 
+
+
+    public void setServerUrl(String serverUrl) {
+        this.serverUrl = serverUrl;
+    }
+
     public void alive(boolean alive) {
         if (this.alive != alive) {
             synchronized (this) {
@@ -31,12 +37,6 @@ public class FileServer {
             }
         }
     }
-
-
-    public void setServerUrl(String serverUrl) {
-        this.serverUrl = serverUrl;
-    }
-
 
     @Override
     public boolean equals(Object o) {
