@@ -11,12 +11,14 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.Properties;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author 都市桃源
@@ -50,9 +52,9 @@ public class ClientConfig {
     private String token;
 
     /**
-     * 心跳监测时间间隔 默认5秒
+     * 心跳监测时间间隔 默认30秒
      */
-    private Long heartIdleTime;
+    private Integer heartIdleTime;
     /**
      * 负载策略 支持Random(随机),Round(轮询)
      */
@@ -68,7 +70,7 @@ public class ClientConfig {
     /**
      * 心跳监测 定时器
      */
-    private static Timer fileServerTimer = new Timer();
+    private static ScheduledExecutorService fileServerCheckPool=Executors.newScheduledThreadPool(1);
 
     /**
      * 下载分块大小 默认4m
@@ -92,24 +94,21 @@ public class ClientConfig {
             this.downLoadChunkSize = getProperty(config, Long.class, "downLoadChunkSize", 4L << 20);
             this.uploadChunkSize = getProperty(config, Long.class, "uploadChunkSize", 4L << 20);
             this.loadbalance = LoadbalanceEnum.valueOf(getProperty(config, String.class, "loadbalance", LoadbalanceEnum.Round.name())).getLoadbalance();
-            this.heartIdleTime = getProperty(config, Long.class, "heartIdleTime", 5000L);
-
+            this.heartIdleTime = getProperty(config, Integer.class, "heartIdleTime", 30);
             ClientConfig myClientConfig = this;
             //定时心跳检测
-            fileServerTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        fdfsServer.stream().filter(server -> {
-                            return !server.isAlive();
-                        }).forEach(server -> {
-                            ServerUtil.checkServerAlive(server, myClientConfig);
-                        });
-                    } catch (Exception e) {
-                        log.warn("server check error", e);
-                    }
+            fileServerCheckPool.scheduleAtFixedRate(()->{
+                try {
+                    fdfsServer.stream().filter(server -> {
+                        return !server.isAlive();
+                    }).forEach(server -> {
+                        ServerUtil.checkServerAlive(server, myClientConfig);
+                    });
+                } catch (Exception e) {
+                    log.warn("server check error", e);
                 }
-            }, 5 * 1000L, this.heartIdleTime);
+            },30,this.heartIdleTime,TimeUnit.SECONDS);
+
         } catch (FdfsException e) {
             throw e;
         } catch (Exception e) {

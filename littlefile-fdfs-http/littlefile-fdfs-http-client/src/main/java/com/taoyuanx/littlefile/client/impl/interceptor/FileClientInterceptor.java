@@ -13,6 +13,9 @@ import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 借助 okhttp拦截器 实现负载均衡和鉴权处理
+ */
 @Slf4j
 public class FileClientInterceptor implements Interceptor {
 

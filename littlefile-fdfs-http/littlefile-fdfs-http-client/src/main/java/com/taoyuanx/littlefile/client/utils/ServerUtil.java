@@ -15,7 +15,6 @@ public class ServerUtil {
      * 判断file server是否存活
      */
     public static boolean checkServerAlive(FileServer fileServer, ClientConfig clientConfig) {
-
         if (fileServer.isAlive()) {
             return true;
         }
