@@ -101,11 +101,7 @@ public class ClientConfig {
             //定时心跳检测
             fileServerCheckPool.scheduleAtFixedRate(() -> {
                 try {
-                    fdfsServer.stream().filter(server -> {
-                        return !server.isAlive();
-                    }).forEach(server -> {
-                        ServerUtil.checkServerAlive(server, myClientConfig);
-                    });
+                    ServerUtil.heartBeatCheck(clientConfig);
                 } catch (Exception e) {
                     log.warn("server check error", e);
                 }

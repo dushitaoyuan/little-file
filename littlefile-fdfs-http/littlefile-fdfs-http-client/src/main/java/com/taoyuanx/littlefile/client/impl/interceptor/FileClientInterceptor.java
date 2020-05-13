@@ -2,11 +2,14 @@ package com.taoyuanx.littlefile.client.impl.interceptor;
 
 import com.taoyuanx.littlefile.client.core.ClientConfig;
 import com.taoyuanx.littlefile.client.core.FdfsFileClientConstant;
-import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.core.FileServer;
+import com.taoyuanx.littlefile.client.ex.FdfsException;
 import com.taoyuanx.littlefile.client.impl.loadbalance.ILoadbalance;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -26,6 +29,7 @@ public class FileClientInterceptor implements Interceptor {
     public FileClientInterceptor(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
         this.loadbalance = clientConfig.getLoadbalance();
+
     }
 
 
@@ -96,6 +100,9 @@ public class FileClientInterceptor implements Interceptor {
 
     private FileServer choseServer() {
         FileServer choseServer = loadbalance.chose(clientConfig.getFdfsServer());
+        if (choseServer == null) {
+            throw new FdfsException("no alive fileServer");
+        }
         if (choseServer.isAlive()) {
             return choseServer;
         } else if (clientConfig.getFdfsServer().size() > 1) {
@@ -113,7 +120,6 @@ public class FileClientInterceptor implements Interceptor {
     }
 
     private FileServer loopForAlive(List<FileServer> excludeFileServerList) {
-
         Optional<FileServer> anyAliveFileServer = clientConfig.getFdfsServer().stream().filter(fileServer -> {
             for (FileServer excludeServer : excludeFileServerList) {
                 if (excludeServer.equals(fileServer)) {
