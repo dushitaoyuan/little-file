@@ -33,7 +33,7 @@ public class DefaultSingletonFastFileClientFactory implements FastFileClientFact
     }
 
     public DefaultSingletonFastFileClientFactory() {
-        this.config = new ClientConfig(ClientConfig.DEFAULT_CONFIG);
+        this.config = new ClientConfig();
     }
 
     private static FileClient fileClient;

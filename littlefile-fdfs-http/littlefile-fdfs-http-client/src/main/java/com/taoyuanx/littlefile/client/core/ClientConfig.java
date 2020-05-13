@@ -6,7 +6,6 @@ import com.taoyuanx.littlefile.client.impl.loadbalance.LoadbalanceEnum;
 import com.taoyuanx.littlefile.client.utils.ServerUtil;
 import com.taoyuanx.littlefile.client.utils.StrUtil;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -26,10 +25,10 @@ import java.util.stream.Collectors;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @Slf4j
 public class ClientConfig {
-    public static final String DEFAULT_CONFIG = "fdfs_http.properties";
+    public static final String DEFAULT_CONFIG = "littlefile-fdfs.properties";
+    public static final String CONFIG_PREFIX = "littlefile.client.";
     /**
      * 服务地址
      */
@@ -70,7 +69,7 @@ public class ClientConfig {
     /**
      * 心跳监测 定时器
      */
-    private static ScheduledExecutorService fileServerCheckPool=Executors.newScheduledThreadPool(1);
+    private static ScheduledExecutorService fileServerCheckPool = Executors.newScheduledThreadPool(1);
 
     /**
      * 下载分块大小 默认4m
@@ -81,23 +80,26 @@ public class ClientConfig {
      */
     private Long uploadChunkSize;
 
+    public ClientConfig() {
+        this(DEFAULT_CONFIG);
+    }
 
     public ClientConfig(String configPath) {
         try {
             Properties config = new Properties();
             config.load(ClientConfig.class.getClassLoader().getResourceAsStream(configPath));
-            this.fdfsServer = Arrays.asList(getProperty(config, "fdfsServer").split(",")).stream().map(FileServer::new).collect(Collectors.toList());
-            this.connectTimeout = getProperty(config, Integer.class, "connectTimeout", 5);
-            this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, "maxIdleConnections", 100);
-            this.keepAliveDuration = this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, "keepAliveDuration", 15);
-            this.token = getProperty(config, "token");
-            this.downLoadChunkSize = getProperty(config, Long.class, "downLoadChunkSize", 4L << 20);
-            this.uploadChunkSize = getProperty(config, Long.class, "uploadChunkSize", 4L << 20);
-            this.loadbalance = LoadbalanceEnum.valueOf(getProperty(config, String.class, "loadbalance", LoadbalanceEnum.Round.name())).getLoadbalance();
-            this.heartIdleTime = getProperty(config, Integer.class, "heartIdleTime", 30);
+            this.fdfsServer = Arrays.asList(getProperty(config, CONFIG_PREFIX, "fdfsServer").split(",")).stream().map(FileServer::new).collect(Collectors.toList());
+            this.connectTimeout = getProperty(config, Integer.class, CONFIG_PREFIX, "connectTimeout", 5);
+            this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, CONFIG_PREFIX, "maxIdleConnections", 100);
+            this.keepAliveDuration = this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, CONFIG_PREFIX, "keepAliveDuration", 15);
+            this.token = getProperty(config, CONFIG_PREFIX, "token");
+            this.downLoadChunkSize = getProperty(config, Long.class, CONFIG_PREFIX, "downLoadChunkSize", 4L << 20);
+            this.uploadChunkSize = getProperty(config, Long.class, CONFIG_PREFIX, "uploadChunkSize", 4L << 20);
+            this.loadbalance = LoadbalanceEnum.valueOf(getProperty(config, String.class, CONFIG_PREFIX, "loadbalance", LoadbalanceEnum.Round.name())).getLoadbalance();
+            this.heartIdleTime = getProperty(config, Integer.class, CONFIG_PREFIX, "heartIdleTime", 30);
             ClientConfig myClientConfig = this;
             //定时心跳检测
-            fileServerCheckPool.scheduleAtFixedRate(()->{
+            fileServerCheckPool.scheduleAtFixedRate(() -> {
                 try {
                     fdfsServer.stream().filter(server -> {
                         return !server.isAlive();
@@ -107,7 +109,7 @@ public class ClientConfig {
                 } catch (Exception e) {
                     log.warn("server check error", e);
                 }
-            },30,this.heartIdleTime,TimeUnit.SECONDS);
+            }, 30, this.heartIdleTime, TimeUnit.SECONDS);
 
         } catch (FdfsException e) {
             throw e;
@@ -118,8 +120,10 @@ public class ClientConfig {
     }
 
 
-    private <T> T getProperty(Properties config, Class<T> type, String key, T defaultValue) {
-
+    private <T> T getProperty(Properties config, Class<T> type, String configPrefix, String key, T defaultValue) {
+        if (StrUtil.isNotEmpty(configPrefix)) {
+            key = configPrefix + key;
+        }
         String value = config.getProperty(key);
         if (StrUtil.isEmpty(value)) {
             return defaultValue;
@@ -147,13 +151,15 @@ public class ClientConfig {
 
     }
 
-    private String getProperty(Properties config, String key) {
+    private String getProperty(Properties config, String configPrefix, String key) {
+        if (StrUtil.isNotEmpty(configPrefix)) {
+            key = configPrefix + key;
+        }
         String value = config.getProperty(key);
         if (StrUtil.isEmpty(value)) {
             throw new FdfsException("config 异常:" + key);
         }
         return value;
-
     }
 
 }
