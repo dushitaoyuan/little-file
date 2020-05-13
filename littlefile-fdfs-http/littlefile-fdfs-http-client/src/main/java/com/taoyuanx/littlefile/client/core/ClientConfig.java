@@ -101,7 +101,7 @@ public class ClientConfig {
             //定时心跳检测
             fileServerCheckPool.scheduleAtFixedRate(() -> {
                 try {
-                    ServerUtil.heartBeatCheck(clientConfig);
+                    ServerUtil.heartBeatCheck(myClientConfig);
                 } catch (Exception e) {
                     log.warn("server check error", e);
                 }
