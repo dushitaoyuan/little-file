@@ -10,7 +10,6 @@ import com.taoyuanx.littlefile.server.dto.ResultBuilder;
 import com.taoyuanx.littlefile.server.ex.ServiceException;
 import com.taoyuanx.littlefile.server.service.FastdfsService;
 import com.taoyuanx.littlefile.server.utils.ByteRangeUtil;
-import com.taoyuanx.littlefile.server.utils.CodeUtil;
 import com.taoyuanx.littlefile.server.utils.PdfToImage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -160,15 +159,6 @@ public class FileController {
         response.addHeader("Content-Length", "" + len);
         response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
         fastdfsService.download(fileId, start, len, response.getOutputStream());
-       /*
-
-       debug range
-       ByteArrayOutputStream out=new ByteArrayOutputStream();
-        fastdfsService.download(fileId, start, len, out);
-        byte[] bytes = out.toByteArray();
-        System.out.println("start:"+start+"  end:"+end+"   len:"+len+" size:"+bytes.length);
-
-        response.getOutputStream().write(bytes);*/
         response.getOutputStream().close();
     }
 

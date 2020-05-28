@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
 @Data
 public class FileProperties {
 
-    private Long datacenterId;
-    private Long machineId;
 
     private String allowType;
     private String fileCacheDir;

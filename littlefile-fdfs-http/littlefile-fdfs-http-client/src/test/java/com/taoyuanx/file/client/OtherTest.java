@@ -11,7 +11,7 @@ import java.io.FileInputStream;
 public class OtherTest {
     @Test
     public void inputTest() throws Exception {
-        System.out.println(new FileInputStream("d://test.exe").available());
+        System.out.println(new FileInputStream("g://fq.exe").available());
         String temp,str;
         System.out.println((temp=str="123"));
         System.out.println(temp);

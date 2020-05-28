@@ -30,7 +30,7 @@ public class TestFileClient {
      */
     @Test
     public void testUpload() {
-        String upload = client.upload("g://111.png");
+        String upload = client.upload("g://fq.exe");
         System.out.println(upload);
     }
 
