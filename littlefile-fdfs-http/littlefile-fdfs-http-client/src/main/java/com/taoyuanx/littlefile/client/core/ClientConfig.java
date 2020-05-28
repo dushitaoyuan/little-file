@@ -90,8 +90,8 @@ public class ClientConfig {
             config.load(ClientConfig.class.getClassLoader().getResourceAsStream(configPath));
             this.fdfsServer = Arrays.asList(getProperty(config, CONFIG_PREFIX, "fdfsServer").split(",")).stream().map(FileServer::new).collect(Collectors.toList());
             this.connectTimeout = getProperty(config, Integer.class, CONFIG_PREFIX, "connectTimeout", 5);
-            this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, CONFIG_PREFIX, "maxIdleConnections", 100);
-            this.keepAliveDuration = this.maxIdleConnections = this.connectTimeout = getProperty(config, Integer.class, CONFIG_PREFIX, "keepAliveDuration", 15);
+            this.maxIdleConnections = getProperty(config, Integer.class, CONFIG_PREFIX, "maxIdleConnections", 100);
+            this.keepAliveDuration = this.connectTimeout = getProperty(config, Integer.class, CONFIG_PREFIX, "keepAliveDuration", 15);
             this.token = getProperty(config, CONFIG_PREFIX, "token");
             this.downLoadChunkSize = getProperty(config, Long.class, CONFIG_PREFIX, "downLoadChunkSize", 4L << 20);
             this.uploadChunkSize = getProperty(config, Long.class, CONFIG_PREFIX, "uploadChunkSize", 4L << 20);
