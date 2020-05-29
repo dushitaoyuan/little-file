@@ -21,20 +21,7 @@ import java.util.Objects;
 
 @Slf4j
 public class OkHttpUtil {
-    public static String guessMimeType(String fileName) {
-        FileNameMap fileNameMap = URLConnection.getFileNameMap();
-        String contentTypeFor = null;
-        try {
-            contentTypeFor = fileNameMap.getContentTypeFor(URLEncoder.encode(
-                    fileName, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        if (contentTypeFor == null) {
-            contentTypeFor = "application/octet-stream";
-        }
-        return contentTypeFor;
-    }
+
 
     public static void addParams(MultipartBody.Builder builder,
                                  Map<String, Object> paramsMap) {
@@ -58,12 +45,12 @@ public class OkHttpUtil {
                     } else if (value instanceof byte[]) {
                         byte[] fileBytes = (byte[]) value;
                         String fileName = paramsMap.get(FdfsFileClientConstant.FILE_NAME_KEY).toString();
-                        RequestBody fileBody = RequestBody.create(MediaType.parse(OkHttpUtil.guessMimeType(fileName)), fileBytes);
+                        RequestBody fileBody = RequestBody.create(MediaType.parse("multipart/form-data"), fileBytes);
                         builder.addFormDataPart(key, fileName, fileBody);
                     } else if (value instanceof InputStream) {
                         byte[] fileBytes = streamToArray((InputStream) value);
                         String fileName = paramsMap.get(FdfsFileClientConstant.FILE_NAME_KEY).toString();
-                        RequestBody fileBody = RequestBody.create(MediaType.parse(OkHttpUtil.guessMimeType(fileName)), fileBytes);
+                        RequestBody fileBody = RequestBody.create(MediaType.parse("multipart/form-data"), fileBytes);
                         builder.addFormDataPart(key, fileName, fileBody);
                     } else {
                         /**
