@@ -15,6 +15,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +37,7 @@ import java.util.Objects;
 @Api(value = "文件通用服务接口")
 @NeedToken
 public class FileController {
+    Logger LOG = LoggerFactory.getLogger(FileController.class);
 
     @Autowired
     FastdfsService fastdfsService;
@@ -159,7 +163,7 @@ public class FileController {
         response.addHeader("Content-Length", "" + len);
         response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
         fastdfsService.download(fileId, start, len, response.getOutputStream());
-        response.getOutputStream().close();
+        IOUtils.closeQuietly(response.getOutputStream());
     }
 
 
@@ -183,6 +187,7 @@ public class FileController {
             tempFile.getParentFile().mkdirs();
         }
         if (!tempFile.exists()) {
+            LOG.debug("开始下载文件[{}]", fileId);
             fastdfsService.download(fileId, new FileOutputStream(tempFile));
         }
         if (StringUtils.isEmpty(previewType)) {
@@ -214,13 +219,19 @@ public class FileController {
     private void transferToOutStream(File tempFile, OutputStream outputStream) throws Exception {
         RandomAccessFile dest = new RandomAccessFile(tempFile, "r");
         FileChannel channel = dest.getChannel();
-        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
-        int len = 0;
-        while ((len = channel.read(buffer)) > 0) {
-            buffer.flip();
-            outputStream.write(buffer.array(), 0, len);
-            buffer.clear();
+        try {
+            ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+            int len = 0;
+            while ((len = channel.read(buffer)) > 0) {
+                buffer.flip();
+                outputStream.write(buffer.array(), 0, len);
+                buffer.clear();
+            }
+        } finally {
+            IOUtils.closeQuietly(dest);
+            IOUtils.closeQuietly(channel);
         }
+
     }
 
     private Long getFileSize(Long fileSize, String fileId) {

@@ -14,6 +14,7 @@ import com.taoyuanx.littlefile.server.utils.FilenameUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -87,7 +88,7 @@ public class FastdfsServiceImpl implements FastdfsService {
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
-            log.error("文件上传异常-->", e);
+            log.error("{} 文件追加 异常-->", fileId, e);
             throw new ServiceException("文件上传异常");
         }
     }
@@ -218,7 +219,7 @@ public class FastdfsServiceImpl implements FastdfsService {
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
-            log.error("删除异常-->", e);
+            log.error("{} 删除异常-->", fileId, e);
             throw new ServiceException("删除异常");
         }
     }
@@ -233,8 +234,10 @@ public class FastdfsServiceImpl implements FastdfsService {
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
-            log.error("下载文件异常-->", e);
-            throw new ServiceException("下载文件异常");
+            log.error("{} 下载文件异常-->", fileId, e);
+            throw new ServiceException(fileId + "下载文件异常");
+        } finally {
+            IOUtils.closeQuietly(outputStream);
         }
     }
 
@@ -248,8 +251,10 @@ public class FastdfsServiceImpl implements FastdfsService {
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
-            log.error("下载文件异常-->", e);
+            log.error("{} 下载文件异常-->", fileId, e);
             throw new ServiceException("下载文件异常");
+        } finally {
+            IOUtils.closeQuietly(outputStream);
         }
     }
 
@@ -262,7 +267,7 @@ public class FastdfsServiceImpl implements FastdfsService {
             }
             org.csource.fastdfs.FileInfo fileInfo = fdfsFileUtil.getFileInfo(fileId);
             if (null == fileInfo) {
-                throw new ServiceException("文件不存在");
+                throw new ServiceException(fileId + "文件不存在");
             }
             FileInfo info = new FileInfo();
             info.setCrc32(fileInfo.getCrc32());
@@ -272,8 +277,8 @@ public class FastdfsServiceImpl implements FastdfsService {
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
-            log.error("文件信息-->", e);
-            throw new ServiceException("文件信息获取异常");
+            log.error("{}文件信息-->", fileId, e);
+            throw new ServiceException(fileId + "文件信息获取异常");
         }
     }
 
@@ -294,7 +299,6 @@ public class FastdfsServiceImpl implements FastdfsService {
         return Collections.EMPTY_LIST;
 
     }
-
 
 
 }
