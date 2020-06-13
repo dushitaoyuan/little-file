@@ -236,8 +236,6 @@ public class FastdfsServiceImpl implements FastdfsService {
         } catch (Exception e) {
             log.error("{} 下载文件异常-->", fileId, e);
             throw new ServiceException(fileId + "下载文件异常");
-        } finally {
-            IOUtils.closeQuietly(outputStream);
         }
     }
 
@@ -253,8 +251,6 @@ public class FastdfsServiceImpl implements FastdfsService {
         } catch (Exception e) {
             log.error("{} 下载文件异常-->", fileId, e);
             throw new ServiceException("下载文件异常");
-        } finally {
-            IOUtils.closeQuietly(outputStream);
         }
     }
 

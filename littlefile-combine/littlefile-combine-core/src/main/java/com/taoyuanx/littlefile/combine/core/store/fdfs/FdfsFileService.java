@@ -72,7 +72,11 @@ public class FdfsFileService extends AbstractFileStoreService implements FileSto
     @Override
     public void downLoad(String fileId, OutputStream outputStream) throws Exception {
         fileId = Utils.removeFileStoreProtocol(fileId);
-        getClient().download_file1(fileId, new DownloadStream(outputStream));
+        try {
+            getClient().download_file1(fileId, new DownloadStream(outputStream));
+        } finally {
+            outputStream.close();
+        }
     }
 
 

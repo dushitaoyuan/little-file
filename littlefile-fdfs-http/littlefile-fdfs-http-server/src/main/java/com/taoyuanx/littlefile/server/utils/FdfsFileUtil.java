@@ -72,7 +72,11 @@ public class FdfsFileUtil {
      * 断点下载
      */
     public void download(String fileId, Long start, Long len, OutputStream out) throws Exception {
-        getClient().download_file1(fileId, start, len, new DownloadStream(out));
+        try {
+            getClient().download_file1(fileId, start, len, new DownloadStream(out));
+        } finally {
+            out.close();
+        }
     }
 
     /**
@@ -134,7 +138,11 @@ public class FdfsFileUtil {
      * 下载文件
      */
     public void download(String fileId, OutputStream out) throws Exception {
-        getClient().download_file1(fileId, new DownloadStream(out));
+        try {
+            getClient().download_file1(fileId, new DownloadStream(out));
+        } finally {
+            out.close();
+        }
     }
 
 
