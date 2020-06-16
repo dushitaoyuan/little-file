@@ -11,7 +11,7 @@ import org.csource.common.NameValuePair;
 import com.taoyuanx.littlefile.util.Utils;
 
 public class FdfsUtil {
-	
+
 	/** 获取文件名
 	 * @param file
 	 * @return
@@ -24,7 +24,7 @@ public class FdfsUtil {
 			return new File(file).getName();
 		}
 	}
-	
+
 	/** 从文件名获取扩展名
 	 * @param fileName
 	 * @return
@@ -36,7 +36,6 @@ public class FdfsUtil {
 		return fileName.substring(fileName.lastIndexOf(".")+1);
 	}
 	/** 从文件名获取扩展名
-	 * @param fileName 
 	 * @param ext
 	 * @return
 	 */
@@ -61,7 +60,7 @@ public class FdfsUtil {
 		}
 		return fileName.substring(0,fileName.lastIndexOf("."));
 	}
-	
+
 	/** slave 从文件 meta信息格式 xxx,xxx
 	 * @param slaves
 	 * @return
@@ -78,7 +77,7 @@ public class FdfsUtil {
 		}
 		return buf.toString();
 	}
-	
+
 	/** 合并文件 meta信息
 	 * @param srcMeta
 	 * @param fileName
@@ -86,7 +85,7 @@ public class FdfsUtil {
 	 * @return
 	 */
 	public static NameValuePair[] merage(NameValuePair[] srcMeta,String fileName,String ...slaves){
-	
+
 		boolean fFlag=fileName!=null&&!"".equals(fileName);
 		boolean sFlag=null!=slaves&&slaves.length>0;
 		if(srcMeta==null||srcMeta.length==0){
@@ -118,6 +117,6 @@ public class FdfsUtil {
 			return temp.values().toArray(new NameValuePair[temp.size()]);
 		}
 	}
-	
-	
+
+
 }

@@ -30,11 +30,8 @@ public class FdfsFileUtil {
         }
 
     }
-
-    static TrackerClient tracker = new TrackerClient();
-
     public StorageClient1 getClient() throws Exception {
-        return new StorageClient1(tracker.getConnection(), null);
+        return new StorageClient1();
     }
 
     /**
