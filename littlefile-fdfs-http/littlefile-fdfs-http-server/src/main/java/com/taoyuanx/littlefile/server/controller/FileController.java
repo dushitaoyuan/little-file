@@ -10,10 +10,12 @@ import com.taoyuanx.littlefile.server.dto.ResultBuilder;
 import com.taoyuanx.littlefile.server.ex.ServiceException;
 import com.taoyuanx.littlefile.server.service.FastdfsService;
 import com.taoyuanx.littlefile.server.utils.ByteRangeUtil;
+import com.taoyuanx.littlefile.server.utils.FileDeteleUtil;
 import com.taoyuanx.littlefile.server.utils.PdfToImage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 
@@ -115,10 +119,13 @@ public class FileController {
             @ApiParam(value = "下载fileId", required = true) @RequestParam(value = "fileId", required = true) String fileId,
             HttpServletResponse response, HttpServletRequest request) throws Exception {
         File tempFile = new File(fileProperties.getFileCacheDir(), fileId);
-        if (false == tempFile.getParentFile().exists()) {
+        if (!tempFile.getParentFile().exists()) {
             tempFile.getParentFile().mkdirs();
         }
         if (!tempFile.exists()) {
+            LOG.debug("开始下载文件[{}]", fileId);
+            //记录删除日志
+            FileUtils.write(new File(fileProperties.getDeleteBinLogFile()), tempFile.getAbsolutePath() + IOUtils.LINE_SEPARATOR, true);
             fastdfsService.download(fileId, new FileOutputStream(tempFile));
         }
         response.setHeader("Content-type", "application/octet-stream");
@@ -183,11 +190,13 @@ public class FileController {
             @ApiParam(value = "预览类型,如果不输入类型,则直接返回文件流,经测试pc端,可直接使用iframe预览pdf,img标签预览图片,移动端浏览器不支持,需将pdf转为图片", required = false) @RequestParam(value = "previewType", required = false) Integer previewType,
             HttpServletRequest request, HttpServletResponse response) throws Exception {
         File tempFile = new File(fileProperties.getFileCacheDir(), fileId);
-        if (false == tempFile.getParentFile().exists()) {
+        if (!tempFile.getParentFile().exists()) {
             tempFile.getParentFile().mkdirs();
         }
         if (!tempFile.exists()) {
             LOG.debug("开始下载文件[{}]", fileId);
+            //记录删除日志
+            FileUtils.write(new File(fileProperties.getDeleteBinLogFile()), tempFile.getAbsolutePath() + IOUtils.LINE_SEPARATOR, true);
             fastdfsService.download(fileId, new FileOutputStream(tempFile));
         }
         if (StringUtils.isEmpty(previewType)) {
