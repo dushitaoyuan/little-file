@@ -25,8 +25,10 @@ public class FileProperties {
     private String allowType;
     private String fileCacheDir;
     private String token;
+    private String deleteLogDir;
 
 
+    private volatile String deleteBinLogFile;
 
 
 }
