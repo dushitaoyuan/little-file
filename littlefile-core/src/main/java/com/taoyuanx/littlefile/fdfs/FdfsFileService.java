@@ -231,8 +231,11 @@ public class FdfsFileService {
     }
 
     public void download(String fileId, OutputStream out) throws Exception {
-        getClient().download_file1(fileId, new DownloadStream(out));
-        out.close();
+        try{
+            getClient().download_file1(fileId, new DownloadStream(out));
+        }finally {
+            out.close();
+        }
     }
 
 

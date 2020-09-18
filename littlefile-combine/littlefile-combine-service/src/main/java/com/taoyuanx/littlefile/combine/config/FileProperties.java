@@ -1,5 +1,6 @@
 package com.taoyuanx.littlefile.combine.config;
 
+import com.taoyuanx.littlefile.combine.core.store.minio.MinioConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -55,7 +56,10 @@ public class FileProperties implements InitializingBean {
      * aliyun 配置
      */
     private AliyunOssConfig aliyunOssConfig;
-
+    /**
+     * minio配置
+     */
+    private MinioConfig minioConfig;
     @Override
     public void afterPropertiesSet() throws Exception {
         if (StringUtils.hasText(allowType)) {
@@ -74,6 +78,7 @@ public class FileProperties implements InitializingBean {
         private Integer port;
         private String workDir;
     }
+
     @Data
     public static class FtpConfig {
         private String username;
@@ -82,10 +87,12 @@ public class FileProperties implements InitializingBean {
         private Integer port;
         private String workDir;
     }
+
     @Data
     public static class FdfsConfig {
         private String configPath;
     }
+
     @Data
     public static class AliyunOssConfig {
         private String endpoint;
@@ -93,5 +100,6 @@ public class FileProperties implements InitializingBean {
         private String accessKeySecret;
         private String bucketName;
     }
+
 
 }

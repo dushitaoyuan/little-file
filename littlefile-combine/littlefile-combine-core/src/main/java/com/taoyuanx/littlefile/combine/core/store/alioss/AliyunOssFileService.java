@@ -59,20 +59,14 @@ public class AliyunOssFileService extends AbstractFileStoreService implements Fi
         ossClient.deleteObject(bucketName, Utils.removeFileStoreProtocol(fileId));
     }
 
+    int BUFF_SIZE = 2 << 20;
 
     @Override
     public void downLoad(String fileId, OutputStream outputStream) throws Exception {
-        int buffSize = 2 << 20;
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, Utils.removeFileStoreProtocol(fileId));
         OSSObject object = ossClient.getObject(getObjectRequest);
         InputStream objectContent = object.getObjectContent();
-        byte[] buffer = new byte[buffSize];
-        int len = 0;
-        while ((len = objectContent.read(buffer)) > 0) {
-            outputStream.write(buffer, 0, len);
-            outputStream.flush();
-        }
-        objectContent.close();
+        Utils.copyStream(objectContent, outputStream,BUFF_SIZE);
 
     }
 

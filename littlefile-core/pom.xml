@@ -65,11 +65,18 @@
             <scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.25</version>
-			<scope>compile</scope>
-		</dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.30</version>
+</dependency>
+
+       <!-- minio-->
+     <dependency>
+        <groupId>io.minio</groupId>
+        <artifactId>minio</artifactId>
+        <version>7.1.0</version>
+         <scope>compile</scope>
+    </dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -66,6 +66,13 @@
             <version>3.5.0</version>
             <optional>true</optional>
         </dependency>
+        <!-- minio-->
+        <dependency>
+        <groupId>io.minio</groupId>
+        <artifactId>minio</artifactId>
+        <version>7.1.0</version>
+            <optional>true</optional>
+    </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>

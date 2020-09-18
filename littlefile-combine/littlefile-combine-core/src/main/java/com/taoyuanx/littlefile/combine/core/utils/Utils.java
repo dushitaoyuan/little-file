@@ -4,9 +4,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.security.KeyStore;
 import java.util.Calendar;
 import java.util.UUID;
@@ -92,7 +90,7 @@ public class Utils {
      * 产生新文件名
      */
     public static String newFileName(String fileName) {
-        return UUID.randomUUID() + "_" + fileName;
+        return UUID.randomUUID() + "_" + getExtension(fileName);
     }
 
     private static String getYearMonth() {
@@ -125,6 +123,7 @@ public class Utils {
         return fileId;
     }
 
+
     public static String addFileStoreProtocol(String storeProtocol, String fileId) {
         return storeProtocol + fileId;
     }
@@ -132,4 +131,28 @@ public class Utils {
     public static String getStoreProtocol(String fileId) {
         return fileId.substring(0, fileId.indexOf("://") + 3);
     }
+
+    public static void copyStream(InputStream inputStream, OutputStream outputStream, int buffSize) {
+        try {
+            byte[] buffer = new byte[buffSize];
+            int len = 0;
+            while ((len = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, len);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            Utils.close(inputStream);
+            Utils.close(outputStream);
+        }
+
+    }
+
+    public static void close(Closeable closeable) {
+        try {
+            closeable.close();
+        } catch (IOException e) {
+        }
+    }
+
 }

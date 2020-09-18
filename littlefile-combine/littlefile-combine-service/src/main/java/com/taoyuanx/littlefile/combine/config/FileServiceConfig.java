@@ -9,7 +9,10 @@ import com.taoyuanx.littlefile.combine.core.store.FileStoreService;
 import com.taoyuanx.littlefile.combine.core.store.alioss.AliyunOssFileService;
 import com.taoyuanx.littlefile.combine.core.store.fdfs.FdfsFileService;
 import com.taoyuanx.littlefile.combine.core.store.ftp.FtpFileService;
+import com.taoyuanx.littlefile.combine.core.store.minio.MinioConfig;
+import com.taoyuanx.littlefile.combine.core.store.minio.MinioFileService;
 import com.taoyuanx.littlefile.combine.core.store.sftp.SftpFileService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,6 +69,12 @@ public class FileServiceConfig {
         return aliyunOssFileService;
     }
 
+    @Bean(name = "minioFileService")
+    public AbstractFileStoreService minioFileService(FileProperties fileProperties) {
+        MinioConfig minioConfig = fileProperties.getMinioConfig();
+        AbstractFileStoreService minioFileService = new MinioFileService(minioConfig);
+        return minioFileService;
+    }
 
 
     @Bean(name = "fileStoreCombineService")

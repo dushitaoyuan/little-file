@@ -6,6 +6,8 @@ import com.taoyuanx.littlefile.clean.FileCleanTask.BadFileAndPeriodDelte;
 import com.taoyuanx.littlefile.clean.FileCleanTask.CheckDelete;
 import com.taoyuanx.littlefile.fdfs.FdfsFileService;
 import com.taoyuanx.littlefile.ftp.LittleFileFtp;
+import com.taoyuanx.littlefile.minio.MinioConfig;
+import com.taoyuanx.littlefile.minio.MinioFileService;
 import com.taoyuanx.littlefile.sftp.LittleFileSftp;
 import com.taoyuanx.littlefile.support.FileDownStrategy;
 import com.taoyuanx.littlefile.support.FileServerEum;
@@ -31,68 +33,85 @@ import java.util.concurrent.TimeUnit;
  */
 public class LittleFileConfig {
     public static final Logger LOG = LoggerFactory.getLogger(LittleFileConfig.class);
+    public static final String LITTLE_FILE_CONFIG_PREIFIX = "littlefile.";
 
     public static class FdfsConfig {
-        public static final String LITTLEFILE_FDFS_FDFS_CONF = "littlefile.fdfs.fdfs_conf";
+        public static final String LITTLEFILE_FDFS_FDFS_CONF = LITTLE_FILE_CONFIG_PREIFIX + "fdfs.fdfs_conf";
     }
 
     public static class SftpConfig {
-        public static final String LITTLEFILE_SFTP_HOST = "littlefile.sftp.host";
-        public static final String LITTLEFILE_SFTP_PORT = "littlefile.sftp.port";
-        public static final String LITTLEFILE_SFTP_USERNAME = "littlefile.sftp.username";
-        public static final String LITTLEFILE_SFTP_PASSWORD = "littlefile.sftp.password";
-        public static final String LITTLEFILE_SFTP_WORKDIR = "littlefile.sftp.workdir";
-        public static final String LITTLEFILE_SFTP_PRIVATE_KEY = "littlefile.sftp.private_key";
-        public static final String LITTLEFILE_SFTP_PRIVATE_KEY_PASSWORD = "littlefile.sftp.private_key_password";
+        public static final String LITTLEFILE_SFTP_HOST = LITTLE_FILE_CONFIG_PREIFIX + "sftp.host";
+        public static final String LITTLEFILE_SFTP_PORT = LITTLE_FILE_CONFIG_PREIFIX + "sftp.port";
+        public static final String LITTLEFILE_SFTP_USERNAME = LITTLE_FILE_CONFIG_PREIFIX + "sftp.username";
+        public static final String LITTLEFILE_SFTP_PASSWORD = LITTLE_FILE_CONFIG_PREIFIX + "sftp.password";
+        public static final String LITTLEFILE_SFTP_WORKDIR = LITTLE_FILE_CONFIG_PREIFIX + "sftp.workdir";
+        public static final String LITTLEFILE_SFTP_PRIVATE_KEY = LITTLE_FILE_CONFIG_PREIFIX + "sftp.private_key";
+        public static final String LITTLEFILE_SFTP_PRIVATE_KEY_PASSWORD = LITTLE_FILE_CONFIG_PREIFIX + "sftp.private_key_password";
     }
 
     public static class FtpConfig {
-        public static final String LITTLEFILE_FTP_HOST = "littlefile.ftp.host";
-        public static final String LITTLEFILE_FTP_PORT = "littlefile.ftp.port";
-        public static final String LITTLEFILE_FTP_USERNAME = "littlefile.ftp.username";
-        public static final String LITTLEFILE_FTP_PASSWORD = "littlefile.ftp.password";
-        public static final String LITTLEFILE_FTP_WORKDIR = "littlefile.ftp.workdir";
-        public static final String LITTLEFILE_FTP_KEY_MANAGER_PATH = "littlefile.ftp.key_manager_path";
-        public static final String LITTLEFILE_FTP_KEY_MANAGER_PASSWORD = "littlefile.ftp.key_manager_password";
-        public static final String LITTLEFILE_FTP_TRUST_MANAGER_PATH = "littlefile.ftp.trust_manager_path";
-        public static final String LITTLEFILE_FTP_TRUST_MANAGER_PASSWORD = "littlefile.ftp.trust_manager_password";
+        public static final String LITTLEFILE_FTP_HOST = LITTLE_FILE_CONFIG_PREIFIX + "ftp.host";
+        public static final String LITTLEFILE_FTP_PORT = LITTLE_FILE_CONFIG_PREIFIX + "ftp.port";
+        public static final String LITTLEFILE_FTP_USERNAME = LITTLE_FILE_CONFIG_PREIFIX + "ftp.username";
+        public static final String LITTLEFILE_FTP_PASSWORD = LITTLE_FILE_CONFIG_PREIFIX + "ftp.password";
+        public static final String LITTLEFILE_FTP_WORKDIR = LITTLE_FILE_CONFIG_PREIFIX + "ftp.workdir";
+        public static final String LITTLEFILE_FTP_KEY_MANAGER_PATH = LITTLE_FILE_CONFIG_PREIFIX + "ftp.key_manager_path";
+        public static final String LITTLEFILE_FTP_KEY_MANAGER_PASSWORD = LITTLE_FILE_CONFIG_PREIFIX + "ftp.key_manager_password";
+        public static final String LITTLEFILE_FTP_TRUST_MANAGER_PATH = LITTLE_FILE_CONFIG_PREIFIX + "ftp.trust_manager_path";
+        public static final String LITTLEFILE_FTP_TRUST_MANAGER_PASSWORD = LITTLE_FILE_CONFIG_PREIFIX + "ftp.trust_manager_password";
     }
 
     public static class LocalConfig {
-        public static final String LITTLEFILE_LOCAL_DIRS = "littlefile.local.dirs";
+        public static final String LITTLEFILE_LOCAL_DIRS = LITTLE_FILE_CONFIG_PREIFIX + "local.dirs";
     }
 
-    public static class OssConfig {
+    public static class AliOssConfig {
         /**
          * oss 相关常量配置名称
          * ACCESSURL_EXPIRE_TIME 访问url过期时间配置名称
          * OSS_FILE_PATH_PREFIX  oss 文件存储前缀 @see
          */
-        public static final String BUCKET_NAME = "littlefile.oss.bucketName";
-        public static final String ACCESSKEY_ID = "littlefile.oss.AccessKeyID";
-        public static final String ACCESSKEY_SECRET = "littlefile.oss.AccessKeySecret";
-        public static final String ENDPOINT = "littlefile.oss.endpoint";
+        public static final String BUCKET_NAME = LITTLE_FILE_CONFIG_PREIFIX + "alioss.bucketName";
+        public static final String ACCESSKEY_ID = LITTLE_FILE_CONFIG_PREIFIX + "alioss.AccessKeyID";
+        public static final String ACCESSKEY_SECRET = LITTLE_FILE_CONFIG_PREIFIX + "alioss.AccessKeySecret";
+        public static final String ENDPOINT = LITTLE_FILE_CONFIG_PREIFIX + "alioss.endpoint";
 
-        public static final String OSS_FILE_PATH_PREFIX = "o_";
     }
 
-    public static final String LITTLEFILE_SERVER_TYPE = "littlefile.server_type";
-    public static final String LITTLEFILE_FILE_GZIP = "littlefile.file.gzip";
-    public static final String LITTLEFILE_FILE_CACHE_TIME = "littlefile.file_cache_time";
+    public static class MinioConfig {
+        /**
+         * minio 相关常量配置名称
+         */
+        public static final String BUCKET_NAME = LITTLE_FILE_CONFIG_PREIFIX + "minio.bucketName";
+        public static final String ACCESS_KEY = LITTLE_FILE_CONFIG_PREIFIX + "minio.accessKey";
+        public static final String SECRET_KEY = LITTLE_FILE_CONFIG_PREIFIX + "minio.secretKey";
+        public static final String ENDPOINT = LITTLE_FILE_CONFIG_PREIFIX + "minio.endpoint";
+        public static final String REGION = LITTLE_FILE_CONFIG_PREIFIX + "minio.region";
+
+
+        public static final String CONNECT_TIMEOUT = LITTLE_FILE_CONFIG_PREIFIX + "minio.connectTimeout";
+        public static final String MAXIDLE_CONNECTIONS = LITTLE_FILE_CONFIG_PREIFIX + "minio.maxIdleConnections";
+        public static final String KEEPALIVE_DURATION = LITTLE_FILE_CONFIG_PREIFIX + "minio.keepAliveDuration";
+
+    }
+
+    public static final String LITTLEFILE_SERVER_TYPE = LITTLE_FILE_CONFIG_PREIFIX + "server_type";
+    public static final String LITTLEFILE_FILE_GZIP = LITTLE_FILE_CONFIG_PREIFIX + "file.gzip";
+    public static final String LITTLEFILE_FILE_CACHE_TIME = LITTLE_FILE_CONFIG_PREIFIX + "file_cache_time";
     public static final Long LITTLEFILE_FILE_CACHE_TIME_DEFAULT = TimeUnit.MINUTES.toMillis(30);
 
-    public static final String LITTLEFILE_FILE_CLEAN_THREAD_NUM = "littlefile.file_clean_thread_num";
-    public static final String LITTLEFILE_FILE_CACHE_DIR = "littlefile.file_cache_dir";
+    public static final String LITTLEFILE_FILE_CLEAN_THREAD_NUM = LITTLE_FILE_CONFIG_PREIFIX + "file_clean_thread_num";
+    public static final String LITTLEFILE_FILE_CACHE_DIR = LITTLE_FILE_CONFIG_PREIFIX + "file_cache_dir";
     public static final Integer LITTLEFILE_FILE_CLEAN_THREAD_NUM_DEFAULT = 3;
 
 
     //安全控制
-    public static final String LITTLEFILE_TOKEN_HMAC = "littlefile.token.hmac";
-    public static final String LITTLEFILE_TOKEN_PASSWORD = "littlefile.token.password";
+    public static final String LITTLEFILE_TOKEN_HMAC = LITTLE_FILE_CONFIG_PREIFIX + "token.hmac";
+    public static final String LITTLEFILE_TOKEN_PASSWORD = LITTLE_FILE_CONFIG_PREIFIX + "token.password";
     //token过期时间
-    public static final String LITTLEFILE_TOKEN_EXPIRE_MIN = "littlefile.token.expireMin";
+    public static final String LITTLEFILE_TOKEN_EXPIRE_MIN = LITTLE_FILE_CONFIG_PREIFIX + "token.expireMin";
     //文件访问url模板
-    public static final String LITTLEFILE_FILEHANDLE_URL_FORMAT = "littlefile.fileHandle.url_format";
+    public static final String LITTLEFILE_FILEHANDLE_URL_FORMAT = LITTLE_FILE_CONFIG_PREIFIX + "fileHandle.url_format";
 
     private static final Map<String, Object> CONFIGHOLDER = new HashMap<>();
 
@@ -172,10 +191,10 @@ public class LittleFileConfig {
                 break;
 
                 case OSS: {
-                    CONFIGHOLDER.put(OssConfig.BUCKET_NAME, pro.getProperty(OssConfig.BUCKET_NAME));
-                    CONFIGHOLDER.put(OssConfig.ACCESSKEY_ID, pro.getProperty(OssConfig.ACCESSKEY_ID));
-                    CONFIGHOLDER.put(OssConfig.ACCESSKEY_SECRET, pro.getProperty(OssConfig.ACCESSKEY_SECRET));
-                    CONFIGHOLDER.put(OssConfig.ENDPOINT, pro.getProperty(OssConfig.ENDPOINT));
+                    CONFIGHOLDER.put(AliOssConfig.BUCKET_NAME, pro.getProperty(AliOssConfig.BUCKET_NAME));
+                    CONFIGHOLDER.put(AliOssConfig.ACCESSKEY_ID, pro.getProperty(AliOssConfig.ACCESSKEY_ID));
+                    CONFIGHOLDER.put(AliOssConfig.ACCESSKEY_SECRET, pro.getProperty(AliOssConfig.ACCESSKEY_SECRET));
+                    CONFIGHOLDER.put(AliOssConfig.ENDPOINT, pro.getProperty(AliOssConfig.ENDPOINT));
                 }
                 break;
                 case LOCAL: {
@@ -249,17 +268,50 @@ public class LittleFileConfig {
             break;
 
             case OSS: {
-                String msg = "oss配置丢失,请检查配置";
-                String accessKeyID = getConfig(FtpConfig.LITTLEFILE_FTP_HOST);
-                String accessKeySecret = getConfig(FtpConfig.LITTLEFILE_FTP_PORT);
-                String bucketName = getConfig(FtpConfig.LITTLEFILE_FTP_USERNAME);
-                String endpoint = getConfig(FtpConfig.LITTLEFILE_FTP_PASSWORD);
+                String msg = "alioss配置丢失,请检查配置";
+                String accessKeyID = getConfig(AliOssConfig.ACCESSKEY_ID);
+                String accessKeySecret = getConfig(AliOssConfig.ACCESSKEY_SECRET);
+                String bucketName = getConfig(AliOssConfig.BUCKET_NAME);
+                String endpoint = getConfig(AliOssConfig.ENDPOINT);
                 Utils.notNull(accessKeyID, msg);
                 Utils.notNull(accessKeySecret, msg);
                 Utils.notNull(bucketName, msg);
                 Utils.notNull(endpoint, msg);
                 AliyunOssFileService aliyunOssFileService = new AliyunOssFileService(endpoint, accessKeyID, accessKeySecret, bucketName);
                 strategy = new AliyunOssStrategy(aliyunOssFileService);
+            }
+            case MINIO: {
+                String msg = "minio配置丢失,请检查配置";
+                String accessKey = getConfig(MinioConfig.ACCESS_KEY);
+                String secretKey = getConfig(MinioConfig.SECRET_KEY);
+                String bucketName = getConfig(MinioConfig.BUCKET_NAME);
+                String endpoint = getConfig(MinioConfig.ENDPOINT);
+                String region = getConfig(MinioConfig.REGION);
+                Utils.notNull(accessKey, msg);
+                Utils.notNull(secretKey, msg);
+                Utils.notNull(bucketName, msg);
+                Utils.notNull(endpoint, msg);
+                com.taoyuanx.littlefile.minio.MinioConfig minioConfig = new com.taoyuanx.littlefile.minio.MinioConfig();
+                minioConfig.setAccessKey(accessKey);
+                minioConfig.setSecretKey(secretKey);
+                minioConfig.setBucketName(bucketName);
+                minioConfig.setEndpoint(endpoint);
+                minioConfig.setRegion(region);
+
+                String connectTimeout = getConfig(MinioConfig.CONNECT_TIMEOUT);
+                String maxIdleConnections = getConfig(MinioConfig.KEEPALIVE_DURATION);
+                String keepAliveDuration = getConfig(MinioConfig.MAXIDLE_CONNECTIONS);
+                if (Utils.isNotEmpty(connectTimeout)) {
+                    minioConfig.setConnectTimeout(Integer.getInteger(connectTimeout));
+                }
+                if (Utils.isNotEmpty(maxIdleConnections)) {
+                    minioConfig.setMaxIdleConnections(Integer.getInteger(maxIdleConnections));
+                }
+                if (Utils.isNotEmpty(keepAliveDuration)) {
+                    minioConfig.setKeepAliveDuration(Integer.getInteger(keepAliveDuration));
+                }
+                MinioFileService minioFileService = new MinioFileService(minioConfig);
+                strategy = new MinioStrategy(minioFileService);
             }
             break;
             case LOCAL: {

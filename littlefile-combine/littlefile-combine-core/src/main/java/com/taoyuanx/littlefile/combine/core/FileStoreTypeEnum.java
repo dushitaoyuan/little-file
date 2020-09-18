@@ -11,11 +11,13 @@ public enum FileStoreTypeEnum {
     FTP(1, "ftp://", "ftp文件存储"),
     SFTP(2, "sftp://", "ftp文件存储"),
     FDFS(3, "fdfs://", "fastdfs文件存储"),
-    AliYunOSS(4, "alioss://", "阿里云oss存储");
+    AliYunOSS(4, "alioss://", "阿里云oss存储"),
+    MINIO(5, "minio://", "minio存储"),
+    ;
     public int code;
     public String desc;
     public String protocol;
-    private static final Map<Object, FileStoreTypeEnum> enumHolder =new HashMap<>();
+    private static final Map<Object, FileStoreTypeEnum> enumHolder = new HashMap<>();
 
     static {
         FileStoreTypeEnum[] typeArray = FileStoreTypeEnum.values();
@@ -35,6 +37,7 @@ public enum FileStoreTypeEnum {
         return enumHolder.get(code);
 
     }
+
     public static FileStoreTypeEnum protocol(String protocol) {
         return enumHolder.get(protocol);
 

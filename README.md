@@ -1,12 +1,12 @@
 # little-file
 
 ## 项目介绍
-小型文件管理http服务,为原有的文件系统提供可靠的http服务目前支持:fatdfs,ftp,sftp,local(本地文件)图片在线预览,支持gzip压缩简单封装了,fastdfs,sftp,ftp基本操作(上传,下载)
+小型文件管理http服务,为原有的文件系统提供可靠的http服务目前支持:fatdfs,ftp,sftp,minio,local(本地文件)图片在线预览,支持gzip压缩简单封装了,fastdfs,sftp,ftp基本操作(上传,下载)
 简单安全控制 hmac
 可在线预览pdf,图片等文件,后续可支持文件缩放,剪裁等功能
 
 1. littlefile-core  
-基本实现 fdfs,sftp,ftp,aliyunoss 基础功能 (上传,下载,删除,断点下载,实时图片预览)
+基本实现 fdfs,sftp,ftp,minio,aliyunoss 基础功能 (上传,下载,删除,断点下载,实时图片预览)
 2. xxx-sample   
 littlefile-core 的文件服务访问(下载,访问,对接已有文件系统)功能例子
 3. littlefile-combine  
@@ -85,10 +85,19 @@ littlefile.ftp.trust_manager_path=
 littlefile.ftp.trust_manager_password=
 
 #阿里云oss配置
-littlefile.oss.bucketName=
-littlefile.oss.AccessKeyID=
-littlefile.oss.AccessKeySecret=
-littlefile.oss.endpoint=
+littlefile.alioss.bucketName=
+littlefile.alioss.AccessKeyID=
+littlefile.alioss.AccessKeySecret=
+littlefile.alioss.endpoint=
+#minio配置
+littlefile.minio.bucketName=
+littlefile.minio.accessKey=
+littlefile.minio.secretKey=
+littlefile.minio.endpoint=
+littlefile.minio.region=
+littlefile.minio.connectTimeout=
+littlefile.minio.maxIdleConnections=
+littlefile.minio.keepAliveDuration=
 
 
 #本地模式 英文,分割,支持多个本地文件目录
